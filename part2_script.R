@@ -27,14 +27,21 @@ for (var in vars_to_remove){
   history[var] = NULL
 }
 
-# Aggregate the history data set
+# Aggregate the history data set 
+## TODO consider dropping one of the precincts
+
 agg_by = list(history$county_desc, history$precinct_abbrv, history$vtd_abbrv, history$age, history$party_cd, history$race_code, history$ethnic_code, history$sex_code)
 history_agg <- aggregate(history$total_voters, agg_by, sum)
 colnames(history_agg) = c("county_desc", "precinct_abbrv", "vtd_abbrv", "age", "party_cd", "race_code", "ethnic_code", "sex_code", "total_voters")
 
-# Joining
-df = inner_join(voters, history_agg, suffix=c(".voters", ".history"), by=c("county_desc", "precinct_abbrv", "vtd_abbrv", "age", "party_cd", "race_code", "ethnic_code", "sex_code"))
+# Joining 
+## NOTE: simplified assumptions if any :)
+## TODO consider replacing NAs with zeros; for actual > registered, consider lowering the actual to match
 
+innerdf = inner_join(voters, history_agg, suffix=c(".voters", ".history"), by=c("county_desc", "precinct_abbrv", "vtd_abbrv", "age", "party_cd", "race_code", "ethnic_code", "sex_code"))
+
+## NOTE: according to Michael: inner poses problems(?) so left join makes more sense
+leftdf = left_join(voters, history_agg, suffix=c(".voters", ".history"), by=c("county_desc", "precinct_abbrv", "vtd_abbrv", "age", "party_cd", "race_code", "ethnic_code", "sex_code"))
 
 
 

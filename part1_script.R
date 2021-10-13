@@ -64,6 +64,7 @@ ggplot(data=df, aes(x=mgstr)) + geom_histogram()
 # ppm
 ggplot(data=df, aes(x=ppm)) + geom_histogram() # few large outliers
 # Use 99th percentile to remove outliers of ppm (removes 38 data points)
+## NOTE: Should include reference for reasonable price to justify assumptions (i.e. typo)
 percentile_cuttoff = quantile(df$ppm, 0.99)
 df = df %>% filter(ppm <= percentile_cuttoff)
 
