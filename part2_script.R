@@ -21,22 +21,25 @@ assertthat::are_equal(sort(unique(voters$county_desc)), sort(used_counties))
 history = read.csv("Data/history_stats_20201103.txt", sep="\t") %>%
   filter(county_desc %in% used_counties)
 
-# Remove unused variables
-vars_to_remove = c("stats_type", "election_date", "update_date", "precinct_abbrv")
+# Remove unused variables 
+# TODO: REMOVE VTD INSTEAD OF PRECINCT FOR SURE, POTENTIALLY ALSO REMOVE PRECINCT LATER TOO
+# TODO: DO NOT "REMOVE" VTD/PRECINCT DATA -> AGGREGATE IT OUT INSTEAD
+# TODO: GOOGLE MAP OF PRECINCT VS VTD - LOTS OF OVERLAP
+vars_to_remove = c("stats_type", "election_date", "update_date", "precinct_abbrv") # TODO: <- remove precinct_abbrv
 for (var in vars_to_remove){
   voters[var] = NULL
   history[var] = NULL
 }
 
 # Aggregate the history data set 
-agg_by = list(history$county_desc, history$vtd_abbrv, history$age, history$party_cd, history$race_code, history$ethnic_code, history$sex_code)
+agg_by = list(history$county_desc, history$vtd_abbrv, history$age, history$party_cd, history$race_code, history$ethnic_code, history$sex_code) # TODO: <- add vtd_abbrv
 history_agg <- aggregate(history$total_voters, agg_by, sum)
-colnames(history_agg) = c("county_desc", "vtd_abbrv", "age", "party_cd", "race_code", "ethnic_code", "sex_code", "total_voters")
+colnames(history_agg) = c("county_desc", "vtd_abbrv", "age", "party_cd", "race_code", "ethnic_code", "sex_code", "total_voters") # TODO: <- change vtd to precinct_abbrv
 
 # Joining 
 ## NOTE: simplified assumptions if any :)
 ## TODO consider replacing NAs with zeros; for actual > registered, consider lowering the actual to match
-df = left_join(voters, history_agg, suffix=c(".registered", ".actual"), by=c("county_desc", "vtd_abbrv", "age", "party_cd", "race_code", "ethnic_code", "sex_code"))
+df = left_join(voters, history_agg, suffix=c(".registered", ".actual"), by=c("county_desc", "vtd_abbrv", "age", "party_cd", "race_code", "ethnic_code", "sex_code")) # TODO: <- change vtd to precinct_abbrv
 
 # replace NA voters with 0
 df$total_voters.actual = replace_na(df$total_voters.actual, 0)
@@ -46,7 +49,7 @@ deltas = df$total_voters.actual - df$total_voters.registered
 df[deltas > 0, "total_voters.actual"] = df[deltas > 0, "total_voters.actual"] - deltas[deltas > 0]
 
 # Fix dtypes
-factor_vars = c("county_desc", "vtd_abbrv", "party_cd", "race_code", "ethnic_code", "sex_code", "age")
+factor_vars = c("county_desc", "vtd_abbrv", "party_cd", "race_code", "ethnic_code", "sex_code", "age") # TODO: <- change vtd to precinct_abbrv
 for (fvar in factor_vars){
   df[,fvar] = as.factor(df[,fvar])
 }
@@ -55,11 +58,13 @@ for (fvar in factor_vars){
 df$turnout = df$total_voters.actual / df$total_voters.registered
 
 #################### EDA ######################
+# TODO: KEEP ALL DEMOGRAPHIC DATA SO FOCUS ONLY ON INTERACTIONS 
+# -> when you have a lot of data, they will all be significant so it's more about what you're interested in
 
 ggplot(data=df, aes(x=turnout)) + geom_histogram(bins=10)
 
 ##### Bivariate Prop Tables #####
-# for EDA: disaggregate
+# for EDA: disaggregate 
 df_long = df %>% mutate(new_response = map2(total_voters.actual, total_voters.registered, ~ c(rep(1, .x), rep(0, .y - .x)))) %>% unnest(cols = c(new_response))
 
 # vote vs sex
@@ -79,6 +84,8 @@ prop.table(table(df_long$new_response, df_long$party_cd), 2) # **; GRE=green, CS
 
 # vote vs county
 prop.table(table(df_long$new_response, df_long$county_desc), 2) # *
+# TODO: KEY IS TO SHOW THAT RESPONSE (TURNOUT) VARIES BY COUNTY TO JUSTIFY THE HIERARCHY 
+# TODO: SIMILARLY SHOULD INCLUDE A VISUALIZATION OF VOTE VS SAMPLE OF PRECINCTS TO OBSERVE
 
 #### Interactions ####
 cond_prob <- function (df, col1, col2) {
