@@ -10,6 +10,7 @@ library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(data.table)
+library(lme4)
 
 # subset for methadone
 df = streetrx[streetrx$api_temp == "methadone",]
@@ -85,7 +86,32 @@ ggplot(data=df, aes(x=USA_region, y=ppm)) + geom_boxplot()
 ggplot(data=df, aes(x=bulk_purchase, y=ppm)) + geom_boxplot()
 # ggplot(data=df, aes(x=ppm, color=bulk_purchase)) + geom_histogram()
 
-
-
 # CHECK: Only one region per state
 table(df$state, df$USA_region)
+
+#### Interactions ####
+# bulk_purchase x mgstr
+ggplot(data=df, aes(x=fac_mgstr, y=ppm)) + geom_boxplot() + facet_wrap(~bulk_purchase)
+
+# mgstr x source
+ggplot(data=df, aes(x=fac_mgstr, y=ppm)) + geom_boxplot() + facet_wrap(~source)
+
+# mgstr x USA_region
+ggplot(data=df, aes(x=fac_mgstr, y=ppm)) + geom_boxplot() + facet_wrap(~USA_region)
+
+# mgstr x state (20 state sample)
+set.seed(42)
+ggplot(data=df %>% filter(state %in% sample(levels(df$state), 20)), aes(x=fac_mgstr, y=ppm)) + geom_boxplot() + facet_wrap(~state) # **
+
+# LOG TRANSFORMING ppm
+df$log_ppm = log(df$ppm)
+
+########### Modeling ############
+model1 <- lmer(log_ppm ~ source + fac_mgstr + bulk_purchase + (1 | state), data = df)
+summary(model1)
+
+
+
+
+
+

@@ -98,6 +98,8 @@ ggplot(data = df_long, aes(x=party_cd, y=new_response, color=race_code)) + geom_
 ggplot(data = df_long, aes(x=age, y=new_response, color=sex_code)) + geom_bar(position = "dodge", stat = "summary", fun.y = "mean") + theme_classic() # ***
 
 
+############# MODELING #############
+
 
 
 
