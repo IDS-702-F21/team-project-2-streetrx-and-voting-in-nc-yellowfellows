@@ -85,14 +85,17 @@ cond_prob <- function (df, col1, col2) {
   round(apply(table(df[, c(col1, col2)]) / sum(table(df[, c(col1, col2)])), 2, function(x) x/sum(x)), 2)
 }
 
-results = c()
-for (level in levels(df$age)){
-  print(level)
-  print(cond_prob(df_long %>% filter(age == level), "new_response", "party_cd")  )
-}
+# party_cd x age
+ggplot(data = df_long, aes(x=party_cd, y=new_response, color=age)) + geom_bar(position = "dodge", stat = "summary", fun.y = "mean") + theme_classic() # **
 
+# party_cd x sex
+ggplot(data = df_long, aes(x=party_cd, y=new_response, color=sex_code)) + geom_bar(position = "dodge", stat = "summary", fun.y = "mean") + theme_classic() # ***
 
+# party_cd x race
+ggplot(data = df_long, aes(x=party_cd, y=new_response, color=race_code)) + geom_bar(position = "dodge", stat = "summary", fun.y = "mean") + theme_classic() # ***
 
+# age x sex
+ggplot(data = df_long, aes(x=age, y=new_response, color=sex_code)) + geom_bar(position = "dodge", stat = "summary", fun.y = "mean") + theme_classic() # ***
 
 
 
