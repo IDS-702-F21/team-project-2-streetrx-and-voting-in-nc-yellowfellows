@@ -25,21 +25,21 @@ history = read.csv("Data/history_stats_20201103.txt", sep="\t") %>%
 # TODO: REMOVE VTD INSTEAD OF PRECINCT FOR SURE, POTENTIALLY ALSO REMOVE PRECINCT LATER TOO
 # TODO: DO NOT "REMOVE" VTD/PRECINCT DATA -> AGGREGATE IT OUT INSTEAD
 # TODO: GOOGLE MAP OF PRECINCT VS VTD - LOTS OF OVERLAP
-vars_to_remove = c("stats_type", "election_date", "update_date", "precinct_abbrv") # TODO: <- remove precinct_abbrv
+vars_to_remove = c("stats_type", "election_date", "update_date", "vtd_abbrv") # TODO: <- remove precinct_abbrv
 for (var in vars_to_remove){
   voters[var] = NULL
   history[var] = NULL
 }
 
 # Aggregate the history data set 
-agg_by = list(history$county_desc, history$vtd_abbrv, history$age, history$party_cd, history$race_code, history$ethnic_code, history$sex_code) # TODO: <- add vtd_abbrv
+agg_by = list(history$county_desc, history$precinct_abbrv, history$age, history$party_cd, history$race_code, history$ethnic_code, history$sex_code) # TODO: <- add vtd_abbrv
 history_agg <- aggregate(history$total_voters, agg_by, sum)
-colnames(history_agg) = c("county_desc", "vtd_abbrv", "age", "party_cd", "race_code", "ethnic_code", "sex_code", "total_voters") # TODO: <- change vtd to precinct_abbrv
+colnames(history_agg) = c("county_desc", "precinct_abbrv", "age", "party_cd", "race_code", "ethnic_code", "sex_code", "total_voters") # TODO: <- change vtd to precinct_abbrv
 
 # Joining 
 ## NOTE: simplified assumptions if any :)
 ## TODO consider replacing NAs with zeros; for actual > registered, consider lowering the actual to match
-df = left_join(voters, history_agg, suffix=c(".registered", ".actual"), by=c("county_desc", "vtd_abbrv", "age", "party_cd", "race_code", "ethnic_code", "sex_code")) # TODO: <- change vtd to precinct_abbrv
+df = left_join(voters, history_agg, suffix=c(".registered", ".actual"), by=c("county_desc", "precinct_abbrv", "age", "party_cd", "race_code", "ethnic_code", "sex_code")) # TODO: <- change vtd to precinct_abbrv
 
 # replace NA voters with 0
 df$total_voters.actual = replace_na(df$total_voters.actual, 0)
@@ -49,7 +49,7 @@ deltas = df$total_voters.actual - df$total_voters.registered
 df[deltas > 0, "total_voters.actual"] = df[deltas > 0, "total_voters.actual"] - deltas[deltas > 0]
 
 # Fix dtypes
-factor_vars = c("county_desc", "vtd_abbrv", "party_cd", "race_code", "ethnic_code", "sex_code", "age") # TODO: <- change vtd to precinct_abbrv
+factor_vars = c("county_desc", "precinct_abbrv", "party_cd", "race_code", "ethnic_code", "sex_code", "age") # TODO: <- change vtd to precinct_abbrv
 for (fvar in factor_vars){
   df[,fvar] = as.factor(df[,fvar])
 }

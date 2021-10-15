@@ -34,7 +34,7 @@ apply(is.na(df), 2, mean)
 # replace urls with "URL"
 df$source = as.character(df$source)
 url_regex = "(http://|\\.)"
-df$source[grepl(url_regex, df$source)] = "URL"
+df$source[grepl(url_regex, df$source)] = "Internet"
 
 # Merge NAs
 df$source[df$source %in% c("", "N/A", "None")] = "No Input"
@@ -107,6 +107,30 @@ ggplot(data=df %>% filter(state %in% sample(levels(df$state), 20)), aes(x=fac_mg
 df$log_ppm = log(df$ppm)
 
 ########### Modeling ############
+
+null_model <- lm(log_ppm ~ 1 , data=df)
+full_model <- lm(log_ppm ~ source + fac_mgstr + bulk_purchase, data=df)
+step_model <- step(null_model,
+                   scope=formula(full_model),
+                   direction='both',
+                   trace=0)
+
+summary(step_model)
+
+##### Interactions ##### 
+
+# source x fac_mgstr
+source_mg_model <- lm(log_ppm ~ source + fac_mgstr + bulk_purchase + source*fac_mgstr, data=df)
+anova(source_mg_model, step_model)
+
+# source x bulk
+source_bulk_model <- lm(log_ppm ~ source + fac_mgstr + bulk_purchase + source*bulk_purchase, data=df)
+anova(source_bulk_model, step_model)
+
+# mgstr x bulk
+mg_bulk_model <- lm(log_ppm ~ source + fac_mgstr + bulk_purchase + fac_mgstr*bulk_purchase, data=df)
+anova(mg_bulk_model, step_model)
+
 model1 <- lmer(log_ppm ~ source + fac_mgstr + bulk_purchase + (1 | state), data = df)
 summary(model1)
 
