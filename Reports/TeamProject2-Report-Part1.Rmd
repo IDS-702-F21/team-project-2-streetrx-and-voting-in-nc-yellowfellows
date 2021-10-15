@@ -1,0 +1,31 @@
+---
+title: "Report Part 1"
+author: "TBD"
+date: "10/14/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Summary
+
+# Introduction
+
+# Data 
+- general description
+  - e.g. free entry = dirty data?
+- cleaning
+  - e.g. cosolidating factors
+  - removing unused levels (e.g. mgstr now only has 5, 10, 40)
+- outlier removal (first 99, then 95)
+  - alliviates need for log-scaling
+- EDA
+- Interactions
+
+# Model
+- non-hierarchical linear model
+- adding hierarchy
+
+# Conclusion

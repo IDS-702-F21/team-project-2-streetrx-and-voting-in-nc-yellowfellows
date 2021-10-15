@@ -66,7 +66,7 @@ ggplot(data=df, aes(x=mgstr)) + geom_histogram()
 ggplot(data=df, aes(x=ppm)) + geom_histogram()  # few large outliers
 # Use 99th percentile to remove outliers of ppm (removes 38 data points)
 ## TODO: Should include reference for reasonable price to justify assumptions (i.e. typo)
-percentile_cuttoff = quantile(df$ppm, 0.99)
+percentile_cuttoff = quantile(df$ppm, 0.95)
 df = df %>% filter(ppm <= percentile_cuttoff)
 
 # ppm by source
@@ -93,6 +93,9 @@ table(df$state, df$USA_region)
 # bulk_purchase x mgstr
 ggplot(data=df, aes(x=fac_mgstr, y=ppm)) + geom_boxplot() + facet_wrap(~bulk_purchase)
 
+# bulk_purchase x source
+ggplot(data=df, aes(x=source, y=ppm)) + geom_boxplot() + facet_wrap(~bulk_purchase)
+
 # mgstr x source
 ggplot(data=df, aes(x=fac_mgstr, y=ppm)) + geom_boxplot() + facet_wrap(~source)
 
@@ -103,39 +106,74 @@ ggplot(data=df, aes(x=fac_mgstr, y=ppm)) + geom_boxplot() + facet_wrap(~USA_regi
 set.seed(42)
 ggplot(data=df %>% filter(state %in% sample(levels(df$state), 20)), aes(x=fac_mgstr, y=ppm)) + geom_boxplot() + facet_wrap(~state) # **
 
-# LOG TRANSFORMING ppm
-df$log_ppm = log(df$ppm)
+# DO NOT!!! LOG TRANSFORMING ppm
+# df$log_ppm = log(df$ppm)
+# ppm close to zero messes up log -> remove more outliers instead (95th percentile instead of 99th)
 
 ########### Modeling ############
 
-null_model <- lm(log_ppm ~ 1 , data=df)
-full_model <- lm(log_ppm ~ source + fac_mgstr + bulk_purchase, data=df)
+null_model <- lm(ppm ~ 1 , data=df)
+full_model <- lm(ppm ~ source + fac_mgstr + bulk_purchase, data=df)
 step_model <- step(null_model,
                    scope=formula(full_model),
                    direction='both',
                    trace=0)
 
-summary(step_model)
+summary(step_model)  # FINAL MODEL
 
 ##### Interactions ##### 
 
 # source x fac_mgstr
-source_mg_model <- lm(log_ppm ~ source + fac_mgstr + bulk_purchase + source*fac_mgstr, data=df)
-anova(source_mg_model, step_model)
+source_mg_model <- lm(ppm ~ source + fac_mgstr + bulk_purchase + source*fac_mgstr, data=df)
+anova(source_mg_model, step_model) # NS
 
 # source x bulk
-source_bulk_model <- lm(log_ppm ~ source + fac_mgstr + bulk_purchase + source*bulk_purchase, data=df)
-anova(source_bulk_model, step_model)
+source_bulk_model <- lm(ppm ~ source + fac_mgstr + bulk_purchase + source*bulk_purchase, data=df)
+anova(source_bulk_model, step_model) # NS
 
-# mgstr x bulk
-mg_bulk_model <- lm(log_ppm ~ source + fac_mgstr + bulk_purchase + fac_mgstr*bulk_purchase, data=df)
-anova(mg_bulk_model, step_model)
+# fac_mgstr x bulk
+mg_bulk_model <- lm(ppm ~ source + fac_mgstr + bulk_purchase + fac_mgstr*bulk_purchase, data=df)
+anova(mg_bulk_model, step_model) # NS
 
-model1 <- lmer(log_ppm ~ source + fac_mgstr + bulk_purchase + (1 | state), data = df)
-summary(model1)
+# source x fac_mgstr AND source x bulk
+source_mg_bulk_model <- lm(ppm ~ source + fac_mgstr + bulk_purchase + source*fac_mgstr + source*bulk_purchase, data=df)
+anova(source_mg_model, step_model) # NS
+
+# Conclude: use step_model as FINAL non-hierarchical baseline
+
+########### HIERARCHICAL MODELING #############
+# Level = State only
+model1 <- lmer(ppm ~ fac_mgstr + bulk_purchase + source + (1 | state), data = df)
+summary(model1) 
+AIC(model1)
+
+# Level = region only
+model2 <- lmer(ppm ~ fac_mgstr + bulk_purchase + source + (1 | USA_region), data = df)
+summary(model2)
+AIC(model2)
+
+# Levels = state + region
+model3 <- lmer(ppm ~ fac_mgstr + bulk_purchase + source + (1 | USA_region) + (1 | state), data = df)
+summary(model3)
+AIC(model3)
+
+
+# conclude: Use state+region hierarchy
 
 
 
 
 
 
+# Resids by group
+resids_by_group = function(group_by_var){
+  temp_df = data.frame(resids = residuals(source_mg_bulk_model), group=df[, group_by_var])
+  #return(temp_df %>% group_by(group) %>% summarize(mean=mean(abs(resids))))
+  ggplot(data=temp_df, aes(x=group, y=resids)) + geom_boxplot()
+}
+
+resids_by_group("source")
+resids_by_group("bulk_purchase")
+resids_by_group("fac_mgstr")
+resids_by_group("state")
+resids_by_group("USA_region")

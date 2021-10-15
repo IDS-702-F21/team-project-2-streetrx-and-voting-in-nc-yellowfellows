@@ -1,0 +1,33 @@
+---
+title: "Report Part 2"
+author: "TBD"
+date: "10/14/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Summary
+
+# Introduction
+
+# Data 
+- general description
+  - random sample counties (name them!)
+  - aggregated, describe used variables
+  - mention diff between registered an actual
+- joining
+  - left, keys, 
+- cleaning
+  - turnout <= 1, NA handling
+- EDA
+  - 0/1 dummy instead of turnout variable 
+- Interactions
+
+# Model
+TBD
+
+# Conclusion
+
