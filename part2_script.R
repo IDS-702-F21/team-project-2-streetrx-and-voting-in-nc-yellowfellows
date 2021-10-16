@@ -29,6 +29,7 @@ for (var in vars_to_remove){
 }
 
 # Aggregate the history data set 
+# TODO: User voter_party_cd instead of party_cd!!??
 agg_by = list(history$county_desc, history$precinct_abbrv, history$age, history$party_cd, history$race_code, history$ethnic_code, history$sex_code)
 history_agg <- aggregate(history$total_voters, agg_by, sum)
 colnames(history_agg) = c("county_desc", "precinct_abbrv", "age", "party_cd", "race_code", "ethnic_code", "sex_code", "total_voters")
