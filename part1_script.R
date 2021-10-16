@@ -157,11 +157,37 @@ model3 <- lmer(ppm ~ fac_mgstr + bulk_purchase + source + (1 | USA_region) + (1 
 summary(model3)
 AIC(model3)
 
-
+# write.csv(df, "Data/part1_df.csv")
 # conclude: Use state+region hierarchy
 
+# prediction plot
+I_WANT_TO_EXPORT_HUNDREDS_OF_CSVs = FALSE
 
+if(I_WANT_TO_EXPORT_HUNDREDS_OF_CSVs){
+pred_df = df # copy
+overwrite_cols = c("bulk_purchase", "source", "fac_mgstr", "USA_region")
+overwrite_df = expand.grid(unique(df$bulk_purchase), unique(df$source), unique(df$fac_mgstr), unique(df$USA_region))
+colnames(overwrite_df) = overwrite_cols
 
+#dfs = NULL
+
+for (row in rownames(overwrite_df)){
+  pred_df = df # copy
+  for (overwrite_col in overwrite_cols){
+    pred_df[, overwrite_col] = rep(overwrite_df[row, overwrite_col], nrow(pred_df))
+  }
+  
+  #   ATTENTION:  vvvvvv MODEL CHOICE
+  preds = predict(model3, pred_df)
+  pred_df$pred = preds
+  print(class(pred_df))
+ 
+  
+  overwrite_df[row, "pred"] = mean(preds)
+  print(mean(preds))
+  write.csv(pred_df, paste0("Data/PredplotsData/part1_pred_df_", row, ".csv"))
+}
+}
 
 
 

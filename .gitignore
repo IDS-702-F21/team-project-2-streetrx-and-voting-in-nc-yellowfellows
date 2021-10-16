@@ -7,3 +7,4 @@ Data/voter_stats_20201103.txt
 Data/streetrx.RData
 Data/history_stats_20201103.txt
 *.Rproj
+Data/PredplotsData/*

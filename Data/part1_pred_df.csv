@@ -1,0 +1,9 @@
+"","bulk_purchase","source","pred"
+"1","Not Bulk","Internet",0.747924023281009
+"2","Bulk","Internet",0.670784919617085
+"3","Not Bulk","Personal",0.809029373211034
+"4","Bulk","Personal",0.731890269547111
+"5","Not Bulk","No Input",0.83204069167372
+"6","Bulk","No Input",0.754901588009797
+"7","Not Bulk","Heard it",0.866917883093906
+"8","Bulk","Heard it",0.789778779429983
