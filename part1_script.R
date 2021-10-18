@@ -11,6 +11,10 @@ library(dplyr)
 library(tidyr)
 library(data.table)
 library(lme4)
+library(knitr)
+library(xtable)
+library(kableExtra)
+
 
 # subset for methadone
 df = streetrx[streetrx$api_temp == "methadone",]
@@ -21,6 +25,7 @@ vars_to_remove = c("yq_pdate", "price_date", "city", "Primary_Reason", "country"
 for (var in vars_to_remove){
   df[var] = NULL
 }
+
 
 # Helper Variables
 df$fac_mgstr = as.factor(df$mgstr)
@@ -44,9 +49,6 @@ df$source[df$source %in% c("google", "Internet Pharmacy", "Poopy,", "Streetrx")]
 
 df$source = as.factor(df$source)
 
-######### Fix mgstr ######### 
-# mgstr 1, 2.5 and 15 have a) few data points and b) outlier ppm -> REMOVE
-df = df %>% filter(mgstr %in% c(5, 10, 40))
 
 ########## Fix NAs in ppm and mgstr ##########
 # TODO: Distribution of IVs by ppm_misssing/not-missing
@@ -56,13 +58,24 @@ df = drop_na(df, "ppm")
 df = drop_na(df, "mgstr")  # NOTE: ppm missing -> mgstr missing so this has no effect
 
 
+###################### PRETTY TABLE BELOW ######################
+
+transpose(df %>% count(mgstr))
+
+xtable(df %>% filter(mgstr %in% c(1, 2.5, 15)))
+
+################################################################
+
+######### Fix mgstr ######### 
+# mgstr 1, 2.5 and 15 have a) few data points and b) outlier ppm -> REMOVE
+df = df %>% filter(mgstr %in% c(5, 10, 40))
 
 
 ########### EDA ############
 # `mgstr` Distribution: only 6 discrete values
 ggplot(data=df, aes(x=mgstr)) + geom_histogram()
 
-# ppm
+# ppm cutoff
 ggplot(data=df, aes(x=ppm)) + geom_histogram()  # few large outliers
 # Use 99th percentile to remove outliers of ppm (removes 38 data points)
 ## TODO: Should include reference for reasonable price to justify assumptions (i.e. typo)
@@ -78,6 +91,8 @@ ggplot(data=df, aes(x=fac_mgstr, y=ppm)) + geom_boxplot()
 
 # ppm by state
 # ggplot(data=df, aes(x=state, y=ppm)) + geom_boxplot()
+set.seed(42)
+ggplot(data=df %>% filter(state %in% sample(levels(df$state), 5)), aes(x=state, y=ppm)) + geom_boxplot()
 
 # ppm by region
 ggplot(data=df, aes(x=USA_region, y=ppm)) + geom_boxplot()
@@ -121,6 +136,23 @@ step_model <- step(null_model,
 
 summary(step_model)  # FINAL MODEL
 
+
+########################## PRETTY TABLE BELOW ############################
+
+summary_step = summary(step_model)
+summaryprint = data.frame(summary_step$coefficients)
+
+stars = c("***","***","***","***","***", ".", "**")
+starsdf = data.frame(stars)
+
+summarydf = data.frame(cbind(round(summaryprint,2),starsdf))
+colnames(summarydf) = c("Estimate","Std. Error","t value", "Pr(>|t|)","")
+knitr::kable(summarydf, format="latex", booktabs=TRUE) %>% 
+  kable_styling(latex_options=c("hold_position"))
+
+##########################################################################
+
+
 ##### Interactions ##### 
 
 # source x fac_mgstr
@@ -157,8 +189,17 @@ model3 <- lmer(ppm ~ fac_mgstr + bulk_purchase + source + (1 | USA_region) + (1 
 summary(model3)
 AIC(model3)
 
+# dotplot
+class(ranef(model3))
+
+################# EXPORT TO CSV AREA ####################
+
 # write.csv(df, "Data/part1_df.csv")
 # conclude: Use state+region hierarchy
+
+df_with_pred = df #copy
+df_with_pred$pred = predict(model3, df)
+write.csv(df, "Data/part1_df_with_predictions.csv")
 
 # prediction plot
 I_WANT_TO_EXPORT_HUNDREDS_OF_CSVs = FALSE
