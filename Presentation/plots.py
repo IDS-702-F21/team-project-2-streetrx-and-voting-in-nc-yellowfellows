@@ -15,21 +15,24 @@ MIDDLE = "#053186"
 DARKBLUE = "#061953"
 
 COL_DTYPES = {
-        "ppm": "float",
-        "state": "category",
-        "USA_region": "category",
-        "source": "category",
-        "bulk_purchase": "category",
-        "fac_mgstr": "category",
-        "mgstr": "category",
-        "pred": "float"
-    }
+    "ppm": "float",
+    "state": "category",
+    "USA_region": "category",
+    "source": "category",
+    "bulk_purchase": "category",
+    "fac_mgstr": "category",
+    "mgstr": "category",
+    "pred": "float",
+}
 #%%
 df1 = pd.read_csv("../Data/part1_pred_df.csv", index_col="Unnamed: 0")
 
+clean_df = pd.read_csv(
+    "../Data/part1_df_with_predictions.csv", index_col="Unnamed: 0", dtype=COL_DTYPES,
+)
 
 #%%
-############### Data Loading ###############
+#################### Data Loading ####################
 USE_RAW_DATA = False
 if USE_RAW_DATA:
     print(f"[INFO] Using raw data!")
@@ -51,12 +54,13 @@ cat_cols = "state USA_region source bulk_purchase".split()
 total[cat_cols] = total[cat_cols].astype("category")
 
 #%%
+#################### pred by source ####################
 fig, ax = plt.subplots(figsize=(8, 5))
 sns.pointplot(
-    data=total,
+    data=clean_df,
     x="source",
     y="pred",
-    ci="sd",
+    ci=95,
     hue="fac_mgstr",
     ax=ax,
     palette=[LIGHTBLUE, MIDDLE, DARKBLUE],
@@ -70,20 +74,18 @@ for tup in y_vals:
 
 
 #%%
-# prediction by state
+#################### Prediction by State ####################
 state_order = (
     total.groupby("state")["pred"].mean().sort_values().index
 )  # .to_series().replace(state_abbrevs).values
 fig, ax = plt.subplots(figsize=(5, 11))
 sns.pointplot(
-    data=total,  # .assign(state=total.state.replace(state_abbrevs)),
+    data=total,
     y="state",
     x="pred",
     ci=95,
     orient="h",
     order=state_order,
-    # hue="fac_mgstr",
-    # palette=[LIGHTBLUE, MIDDLE, DARKBLUE],
     ax=ax,
     color=DARKBLUE,
 )
@@ -93,7 +95,8 @@ ax.legend([], [], frameon=False)
 
 
 #%%
-# map
+#################### US Map ####################
+
 import requests
 
 response = requests.get(
@@ -112,7 +115,7 @@ state_df = (
     .rename({"index": "state"}, axis=1)
 )
 state_df = state_df.assign(state=state_df.state.replace(state_abbrevs))
-state_df.head()
+# state_df.head()
 
 #%%
 import plotly.express as px  # Be sure to import express
@@ -134,9 +137,5 @@ fig.show()
 
 
 #%%
-clean_df = pd.read_csv(
-    "../Data/part1_df.csv",
-    index_col="Unnamed: 0",
-    dtype=COL_DTYPES,
-)
-clean_df
+
+
