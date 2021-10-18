@@ -199,7 +199,7 @@ class(ranef(model3))
 
 df_with_pred = df #copy
 df_with_pred$pred = predict(model3, df)
-write.csv(df, "Data/part1_df_with_predictions.csv")
+write.csv(df_with_pred, "Data/part1_df_with_predictions.csv")
 
 # prediction plot
 I_WANT_TO_EXPORT_HUNDREDS_OF_CSVs = FALSE
