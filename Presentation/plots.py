@@ -3,7 +3,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import matplotlib_inline
-from seaborn import palettes
 
 #%%
 #################### CONFIG ####################
@@ -59,6 +58,7 @@ total[cat_cols] = total[cat_cols].astype("category")
 #################### pred by source ####################
 fig, ax = plt.subplots(figsize=(10, 5))
 palette3 = [LIGHTBLUE, MIDDLE, DARKBLUE]
+
 sns.pointplot(
     data=clean_df,
     x="source",
@@ -71,9 +71,13 @@ sns.pointplot(
 sns.despine()
 ax.legend([], [], frameon=False)
 
-y_vals = clean_df.query("source == 'Personal'").groupby("fac_mgstr")["pred"].mean().items()
+y_vals = (
+    clean_df.query("source == 'Personal'").groupby("fac_mgstr")["pred"].mean().items()
+)
 for idx, tup in enumerate(y_vals):
-    ax.text(3.2, tup[1] - 0.02, f"{tup[0]}mg", size=16, weight="bold", color=palette3[idx])
+    ax.text(
+        3.2, tup[1] - 0.02, f"{tup[0]}mg", size=16, weight="bold", color=palette3[idx]
+    )
 
 ax.set_title("Predicted ppm per source by mgstr\n", weight="bold")
 ax.set_xlabel("Source")
@@ -101,6 +105,18 @@ ax.set_yticklabels(ax.get_yticklabels(), size=11)
 sns.despine()
 ax.legend([], [], frameon=False)
 
+#%%
+states_to_plot = ["Alabama", "Massachusetts", "California", "Kansas"]
+# sns.catplot(
+#     data=clean_df,
+#     x="source",
+#     y="ppm",
+#     col="state",
+#     col_wrap=5,
+#     n_boot=None,
+#     kind="box",
+# )
+
 
 #%%
 #################### US Map ####################
@@ -116,22 +132,24 @@ state_abbrevs
 import pandas as pd
 
 state_df = (
-    total.groupby("state")["pred"]
+    clean_df.groupby("state")["pred"]
     .mean()
     .to_frame()
     .reset_index()
     .rename({"index": "state"}, axis=1)
 )
-state_df = state_df.assign(state=state_df.state.replace(state_abbrevs))
+state_df = state_df.assign(state=state_df.state.replace(state_abbrevs)).rename(
+    {"pred": "Predicted ppm"}, axis=1
+)
 # state_df.head()
 
 #%%
-import plotly.express as px  # Be sure to import express
+import plotly.express as px
 
 fig = px.choropleth(
     state_df,
     locations="state",
-    color="pred",
+    color="Predicted ppm",
     hover_name="state",
     locationmode="USA-states",
     color_continuous_scale=px.colors.sequential.Viridis,
@@ -142,6 +160,7 @@ fig.update_layout(
 )
 
 fig.show()
+fig.write_image("Images/us-map.png", scale=5)
 
 
 #%%
