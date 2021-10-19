@@ -106,7 +106,7 @@ sns.despine()
 ax.legend([], [], frameon=False)
 
 #%%
-states_to_plot = ["Alabama", "Massachusetts", "California", "Kansas"]
+# states_to_plot = ["Alabama", "Massachusetts", "California", "Kansas"]
 # sns.catplot(
 #     data=clean_df,
 #     x="source",
