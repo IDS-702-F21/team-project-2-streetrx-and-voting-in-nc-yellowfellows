@@ -3,7 +3,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import matplotlib_inline
+from seaborn import palettes
 
+#%%
+#################### CONFIG ####################
 matplotlib_inline.backend_inline.set_matplotlib_formats("svg")
 
 plt.rcParams["font.family"] = "Arial"
@@ -25,14 +28,13 @@ COL_DTYPES = {
     "pred": "float",
 }
 #%%
+#################### Data Loading ####################
 df1 = pd.read_csv("../Data/part1_pred_df.csv", index_col="Unnamed: 0")
 
 clean_df = pd.read_csv(
     "../Data/part1_df_with_predictions.csv", index_col="Unnamed: 0", dtype=COL_DTYPES,
 )
 
-#%%
-#################### Data Loading ####################
 USE_RAW_DATA = False
 if USE_RAW_DATA:
     print(f"[INFO] Using raw data!")
@@ -55,7 +57,8 @@ total[cat_cols] = total[cat_cols].astype("category")
 
 #%%
 #################### pred by source ####################
-fig, ax = plt.subplots(figsize=(8, 5))
+fig, ax = plt.subplots(figsize=(10, 5))
+palette3 = [LIGHTBLUE, MIDDLE, DARKBLUE]
 sns.pointplot(
     data=clean_df,
     x="source",
@@ -63,15 +66,20 @@ sns.pointplot(
     ci=95,
     hue="fac_mgstr",
     ax=ax,
-    palette=[LIGHTBLUE, MIDDLE, DARKBLUE],
+    palette=palette3,
 )
 sns.despine()
 ax.legend([], [], frameon=False)
 
-y_vals = total.query("source == 'Personal'").groupby("fac_mgstr")["pred"].mean().items()
-for tup in y_vals:
-    ax.text(3.2, tup[1] - 0.02, f"{tup[0]}mg", size=16, weight="bold")
+y_vals = clean_df.query("source == 'Personal'").groupby("fac_mgstr")["pred"].mean().items()
+for idx, tup in enumerate(y_vals):
+    ax.text(3.2, tup[1] - 0.02, f"{tup[0]}mg", size=16, weight="bold", color=palette3[idx])
 
+ax.set_title("Predicted ppm per source by mgstr\n", weight="bold")
+ax.set_xlabel("Source")
+ax.set_ylabel("Predicted ppm\n")
+
+plt.savefig("Images/ppm_source_mgstr.png", facecolor="white", dpi=300)
 
 #%%
 #################### Prediction by State ####################
@@ -137,5 +145,4 @@ fig.show()
 
 
 #%%
-
 
