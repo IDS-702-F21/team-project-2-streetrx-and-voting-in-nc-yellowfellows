@@ -209,7 +209,7 @@ ggplot(xdf, aes(x=rownames(xdf), y=pointestimate)) +
   geom_point() +
   geom_errorbar(aes(x=rownames(xdf), ymin=pointestimate-1.96*err, ymax=pointestimate+1.96*err))
 
-write_parquet(xdf, "Data/part1_dotplot_data.parquet")
+# write_parquet(xdf, "Data/part1_dotplot_data.parquet")
 
 # TODO export and pretty!
 
