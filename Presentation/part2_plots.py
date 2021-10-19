@@ -18,3 +18,5 @@ DARKBLUE = "#061953"
 
 #%%
 df_long = pd.read_parquet("../Data/part2_df_long.parquet")
+#%%
+df_long

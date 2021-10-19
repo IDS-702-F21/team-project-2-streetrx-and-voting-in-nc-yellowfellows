@@ -15,7 +15,7 @@ library(knitr)
 library(xtable)
 library(kableExtra)
 library(lattice)
-
+library(arrow)
 
 # subset for methadone
 df = streetrx[streetrx$api_temp == "methadone",]
@@ -195,16 +195,21 @@ anova(model3, model1)  # CONCLUDE: Use state AND region
 ########## DOTPLOT ##############
 dotplot(ranef(model3))
 
-x = ranef(model3, condVar=TRUE)$USA_region
+x = ranef(model3, condVar=TRUE)$state
 
-sqrt(attr(x, "postVar"))
-x$`(Intercept)`
+#sqrt(attr(x, "postVar"))
+#x$`(Intercept)`
 
-xdf = data.frame(pointest=ranef(model3, condVar=TRUE)$USA_region, err=as.vector(sqrt(attr(x, "postVar"))))
+xdf = data.frame(pointest=ranef(model3, condVar=TRUE)$state, err=as.vector(sqrt(attr(x, "postVar"))))
+xdf$pointestimate = xdf$X.Intercept.
+xdf$state = rownames(xdf)
+xdf$X.Intercept. = NULL
 
-ggplot(xdf, aes(x=rownames(xdf), y=X.Intercept.)) +
+ggplot(xdf, aes(x=rownames(xdf), y=pointestimate)) +
   geom_point() +
-  geom_errorbar(aes(x=rownames(xdf), ymin=X.Intercept.-1.96*err, ymax=X.Intercept.+1.96*err))
+  geom_errorbar(aes(x=rownames(xdf), ymin=pointestimate-1.96*err, ymax=pointestimate+1.96*err))
+
+write_parquet(xdf, "Data/part1_dotplot_data.parquet")
 
 # TODO export and pretty!
 

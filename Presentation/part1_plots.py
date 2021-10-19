@@ -1,8 +1,8 @@
 #%%
-import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 import matplotlib_inline
+import pandas as pd
+import seaborn as sns
 
 #%%
 #################### CONFIG ####################
@@ -57,7 +57,7 @@ total[cat_cols] = total[cat_cols].astype("category")
 #%%
 #################### pred by source ####################
 fig, ax = plt.subplots(figsize=(10, 5))
-palette3 = [LIGHTBLUE, MIDDLE, DARKBLUE]
+palette3 = [MIDDLE, DARKBLUE, LIGHTBLUE]
 
 sns.pointplot(
     data=clean_df,
@@ -86,24 +86,53 @@ ax.set_ylabel("Predicted ppm\n")
 plt.savefig("Images/ppm_source_mgstr.png", facecolor="white", dpi=300)
 
 #%%
-#################### Prediction by State ####################
-state_order = (
-    total.groupby("state")["pred"].mean().sort_values().index
-)  # .to_series().replace(state_abbrevs).values
-fig, ax = plt.subplots(figsize=(5, 11))
+#################### Random Intercepts by State ####################
+
+df_dotplot = pd.read_parquet("../Data/part1_dotplot_data.parquet").sort_values(
+    by="pointestimate"
+)
+df_dotplot["state"] = df_dotplot["state"].astype("category")
+
+fig, ax = plt.subplots(figsize=(8, 10))
+
 sns.pointplot(
-    data=total,
+    data=df_dotplot,
     y="state",
-    x="pred",
-    ci=95,
-    orient="h",
-    order=state_order,
+    x="pointestimate",
+    xerr=df_dotplot["err"],
+    order=df_dotplot["state"],
     ax=ax,
     color=DARKBLUE,
+    zorder=10,
 )
+
+highlight_states = ["California", "Arizona", "Tennessee"]
 ax.set_yticklabels(ax.get_yticklabels(), size=11)
+for label in ax.get_yticklabels():
+    label.set_color("k" if label.get_text() in highlight_states else "0.6")
+    label.set_weight("bold" if label.get_text() in highlight_states else "normal")
+    label.set_size(11.5 if label.get_text() in highlight_states else 10)
+
+ax.errorbar(
+    df_dotplot["pointestimate"],
+    df_dotplot["state"],
+    xerr=1.96 * df_dotplot["err"],
+    zorder=0,
+    color=DARKBLUE,
+    ecolor=[
+        DARKBLUE if label.get_text() in highlight_states else "0.7"
+        for label in ax.get_yticklabels()
+    ],
+)
 sns.despine()
-ax.legend([], [], frameon=False)
+ax.axvline(0, zorder=-1, color="0.6", linestyle="--")
+ax.set_xlabel("(Intercept)")
+ax.set_ylabel("State")
+ax.set_title("Random Intercepts for States", weight="bold")
+ax.spines['left'].set_visible(False)
+ax.yaxis.set_tick_params(which="both", length=0)
+plt.savefig("Images/intercept_by_state.png", facecolor="white", dpi=300)
+
 
 #%%
 # states_to_plot = ["Alabama", "Massachusetts", "California", "Kansas"]
@@ -131,17 +160,10 @@ state_abbrevs
 
 import pandas as pd
 
-state_df = (
-    clean_df.groupby("state")["pred"]
-    .mean()
-    .to_frame()
-    .reset_index()
-    .rename({"index": "state"}, axis=1)
-)
-state_df = state_df.assign(state=state_df.state.replace(state_abbrevs)).rename(
-    {"pred": "Predicted ppm"}, axis=1
-)
-# state_df.head()
+state_df = df_dotplot.copy()
+
+state_df = state_df.assign(state=state_df.state.replace(state_abbrevs)).rename({'pointestimate': 'Intercept'}, axis=1)
+
 
 #%%
 import plotly.express as px
@@ -149,7 +171,7 @@ import plotly.express as px
 fig = px.choropleth(
     state_df,
     locations="state",
-    color="Predicted ppm",
+    color="Intercept",
     hover_name="state",
     locationmode="USA-states",
     color_continuous_scale=px.colors.sequential.Viridis,
