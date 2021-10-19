@@ -2,6 +2,7 @@
 import matplotlib.pyplot as plt
 import matplotlib_inline
 import pandas as pd
+import numpy as np
 import seaborn as sns
 
 #%%
@@ -54,6 +55,73 @@ else:
 cat_cols = "state USA_region source bulk_purchase".split()
 total[cat_cols] = total[cat_cols].astype("category")
 
+raw_data = pd.read_parquet("../Data/part1_raw_data.parquet")
+#%%
+#################### Univariate ppm ####################
+fig, ax = plt.subplots(figsize=(10, 10))
+sns.histplot(raw_data["ppm"], bins=60, color=DARKBLUE, ec=DARKBLUE)
+
+# pct_line_ymaxs = [1750, 1500, 1000]
+pct_to_plot = [0.95, 0.99, 0.995]
+pct_line_ymaxs = [0.5, 0.35, 0.25]
+for pct, ymax in zip(pct_to_plot, pct_line_ymaxs):
+    COLOR = "red" if pct == 0.95 else "0.4"
+    percentile = np.quantile(raw_data["ppm"].dropna(), pct)
+    ax.axvline(percentile, ls="--", color=COLOR, ymax=ymax * 0.97, ymin=0)
+    ax.text(
+        x=percentile + 0.7,
+        y=ymax * 1900,
+        s=f"{pct*100}th\npercentile",
+        color=COLOR,
+        va="top",
+    )
+
+# ax.text(x=20, y=500, s="Removing outliers > 95th percentile\ndeletes XXX data points.", bbox=dict(boxstyle='round', facecolor='white', alpha=0.5))
+ax.set_title("Distribution of ppm", weight="bold")
+sns.despine()
+
+plt.savefig("Images/part1_univariate_ppm.png", facecolor="white", dpi=300)
+
+#%%
+#################### ppm by state for sample states ####################
+
+# clean_df.groupby("state")["ppm"].agg(["median", "min", "max", "count"]).sort_values(
+#     "median"
+# )
+
+states_to_boxplot = [
+    "Alaska",
+    "California",
+    "Pennsylvania",
+    "New York",
+    "Louisiana",
+    "Iowa",
+]
+
+fig, ax = plt.subplots(figsize=(10, 10))
+_plot_df = clean_df.query("state.isin(@states_to_boxplot)").copy()
+_plot_df["state"] = _plot_df["state"].cat.remove_unused_categories()
+_count_df = _plot_df.groupby('state')['state'].count()
+sns.boxplot(
+    data=_plot_df,
+    y="state",
+    x="ppm",
+    orient="h",
+    color=LIGHTBLUE,
+    medianprops=dict(color="0.9", linewidth=3),
+    boxprops=dict(ec='k'),
+    flierprops=dict(marker='x'),
+)
+sns.despine()
+ax.spines["left"].set_visible(False)
+ax.yaxis.set_tick_params(which="both", length=0)
+ax.set_yticklabels([f"{lab.get_text()}\n(n = {_count_df[lab.get_text()]})" for lab in ax.get_yticklabels()])
+ax.set_title("ppm per State (Sample)", weight='bold')
+ax.set_ylabel(None)
+plt.tight_layout()
+plt.savefig("Images/part1_ppm_per_state.png", facecolor="white", dpi=300)
+
+
 #%%
 #################### pred by source ####################
 fig, ax = plt.subplots(figsize=(10, 5))
@@ -88,9 +156,9 @@ plt.savefig("Images/ppm_source_mgstr.png", facecolor="white", dpi=300)
 #%%
 #################### Random Intercepts by State ####################
 
-df_dotplot_state = pd.read_parquet("../Data/part1_dotplot_data_state.parquet").sort_values(
-    by="pointestimate"
-)
+df_dotplot_state = pd.read_parquet(
+    "../Data/part1_dotplot_data_state.parquet"
+).sort_values(by="pointestimate")
 df_dotplot_state["state"] = df_dotplot_state["state"].astype("category")
 
 fig, ax = plt.subplots(figsize=(8, 10))
@@ -129,16 +197,18 @@ ax.axvline(0, zorder=-1, color="0.6", linestyle="--")
 ax.set_xlabel("(Intercept)")
 ax.set_ylabel("State")
 ax.set_title("Random Intercepts for States", weight="bold")
-ax.spines['left'].set_visible(False)
+ax.spines["left"].set_visible(False)
 ax.yaxis.set_tick_params(which="both", length=0)
 plt.savefig("Images/intercept_by_state.png", facecolor="white", dpi=300)
 
 #%%
 #################### Random Intercepts by Region ####################
 
-df_dotplot_region = pd.read_parquet("../Data/part1_dotplot_data_region.parquet").sort_values(
-    by="pointestimate"
-).rename({'state': 'region'}, axis=1)
+df_dotplot_region = (
+    pd.read_parquet("../Data/part1_dotplot_data_region.parquet")
+    .sort_values(by="pointestimate")
+    .rename({"state": "region"}, axis=1)
+)
 df_dotplot_region["region"] = df_dotplot_region["region"].astype("category")
 
 fig, ax = plt.subplots(figsize=(8, 10))
@@ -171,7 +241,7 @@ ax.axvline(0, zorder=-1, color="0.6", linestyle="--")
 ax.set_xlabel("(Intercept)")
 ax.set_ylabel("Region")
 ax.set_title("Random Intercepts for Regions", weight="bold")
-ax.spines['left'].set_visible(False)
+ax.spines["left"].set_visible(False)
 ax.yaxis.set_tick_params(which="both", length=0)
 plt.savefig("Images/intercept_by_region.png", facecolor="white", dpi=300)
 
@@ -204,7 +274,9 @@ import pandas as pd
 
 state_df = df_dotplot.copy()
 
-state_df = state_df.assign(state=state_df.state.replace(state_abbrevs)).rename({'pointestimate': 'Intercept'}, axis=1)
+state_df = state_df.assign(state=state_df.state.replace(state_abbrevs)).rename(
+    {"pointestimate": "Intercept"}, axis=1
+)
 
 
 #%%

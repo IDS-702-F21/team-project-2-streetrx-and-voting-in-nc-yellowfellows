@@ -31,6 +31,8 @@ for (var in vars_to_remove){
 # Helper Variables
 df$fac_mgstr = as.factor(df$mgstr)
 
+# write_parquet(df, "Data/part1_raw_data.parquet")
+
 ########### MISSING VALUE ANALYSIS & DATA CLEANING ############
 levels(df$bulk_purchase) = c("Not Bulk", "Bulk")
 apply(is.na(df), 2, mean)
