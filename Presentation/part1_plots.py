@@ -88,19 +88,19 @@ plt.savefig("Images/ppm_source_mgstr.png", facecolor="white", dpi=300)
 #%%
 #################### Random Intercepts by State ####################
 
-df_dotplot = pd.read_parquet("../Data/part1_dotplot_data_state.parquet").sort_values(
+df_dotplot_state = pd.read_parquet("../Data/part1_dotplot_data_state.parquet").sort_values(
     by="pointestimate"
 )
-df_dotplot["state"] = df_dotplot["state"].astype("category")
+df_dotplot_state["state"] = df_dotplot_state["state"].astype("category")
 
 fig, ax = plt.subplots(figsize=(8, 10))
 
 sns.pointplot(
-    data=df_dotplot,
+    data=df_dotplot_state,
     y="state",
     x="pointestimate",
-    xerr=df_dotplot["err"],
-    order=df_dotplot["state"],
+    xerr=df_dotplot_state["err"],
+    order=df_dotplot_state["state"],
     ax=ax,
     color=DARKBLUE,
     zorder=10,
@@ -114,15 +114,16 @@ for label in ax.get_yticklabels():
     label.set_size(11.5 if label.get_text() in highlight_states else 10)
 
 ax.errorbar(
-    df_dotplot["pointestimate"],
-    df_dotplot["state"],
-    xerr=1.96 * df_dotplot["err"],
+    df_dotplot_state["pointestimate"],
+    df_dotplot_state["state"],
+    xerr=1.96 * df_dotplot_state["err"],
+    capsize=2.5,
     zorder=0,
     color=DARKBLUE,
-    ecolor=[
-        DARKBLUE if label.get_text() in highlight_states else "0.7"
-        for label in ax.get_yticklabels()
-    ],
+    # ecolor=[
+    #     DARKBLUE if label.get_text() in highlight_states else "0.7"
+    #     for label in ax.get_yticklabels()
+    # ],
 )
 sns.despine()
 ax.axvline(0, zorder=-1, color="0.6", linestyle="--")
@@ -136,50 +137,44 @@ plt.savefig("Images/intercept_by_state.png", facecolor="white", dpi=300)
 #%%
 #################### Random Intercepts by Region ####################
 
-df_dotplot = pd.read_parquet("../Data/part1_dotplot_data_region.parquet").sort_values(
+df_dotplot_region = pd.read_parquet("../Data/part1_dotplot_data_region.parquet").sort_values(
     by="pointestimate"
-)
-df_dotplot["state"] = df_dotplot["state"].astype("category")
+).rename({'state': 'region'}, axis=1)
+df_dotplot_region["region"] = df_dotplot_region["region"].astype("category")
 
 fig, ax = plt.subplots(figsize=(8, 10))
 
 sns.pointplot(
-    data=df_dotplot,
-    y="state",
+    data=df_dotplot_region,
+    y="region",
     x="pointestimate",
-    xerr=df_dotplot["err"],
-    order=df_dotplot["state"],
+    xerr=df_dotplot_region["err"],
+    order=df_dotplot_region["region"],
     ax=ax,
     color=DARKBLUE,
     zorder=10,
 )
 
-highlight_states = ["California", "Arizona", "Tennessee"]
-ax.set_yticklabels(ax.get_yticklabels(), size=11)
+highlight_regions = ["South"]
 for label in ax.get_yticklabels():
-    label.set_color("k" if label.get_text() in highlight_states else "0.6")
-    label.set_weight("bold" if label.get_text() in highlight_states else "normal")
-    label.set_size(11.5 if label.get_text() in highlight_states else 10)
+    label.set_weight("bold" if label.get_text() in highlight_regions else "normal")
 
 ax.errorbar(
-    df_dotplot["pointestimate"],
-    df_dotplot["state"],
-    xerr=1.96 * df_dotplot["err"],
+    df_dotplot_region["pointestimate"],
+    df_dotplot_region["region"],
+    xerr=1.96 * df_dotplot_region["err"],
+    capsize=5,
     zorder=0,
     color=DARKBLUE,
-    ecolor=[
-        DARKBLUE if label.get_text() in highlight_states else "0.7"
-        for label in ax.get_yticklabels()
-    ],
 )
 sns.despine()
 ax.axvline(0, zorder=-1, color="0.6", linestyle="--")
 ax.set_xlabel("(Intercept)")
-ax.set_ylabel("State")
-ax.set_title("Random Intercepts for States", weight="bold")
+ax.set_ylabel("Region")
+ax.set_title("Random Intercepts for Regions", weight="bold")
 ax.spines['left'].set_visible(False)
 ax.yaxis.set_tick_params(which="both", length=0)
-plt.savefig("Images/intercept_by_state.png", facecolor="white", dpi=300)
+plt.savefig("Images/intercept_by_region.png", facecolor="white", dpi=300)
 
 
 #%%
