@@ -14,6 +14,7 @@ library(lme4)
 library(knitr)
 library(xtable)
 library(kableExtra)
+library(lattice)
 
 
 # subset for methadone
@@ -189,17 +190,49 @@ model3 <- lmer(ppm ~ fac_mgstr + bulk_purchase + source + (1 | USA_region) + (1 
 summary(model3)
 AIC(model3)
 
-# dotplot
-class(ranef(model3))
+anova(model3, model1)  # CONCLUDE: Use state AND region
+
+########## DOTPLOT ##############
+dotplot(ranef(model3))
+
+x = ranef(model3, condVar=TRUE)$USA_region
+
+sqrt(attr(x, "postVar"))
+x$`(Intercept)`
+
+xdf = data.frame(pointest=ranef(model3, condVar=TRUE)$USA_region, err=as.vector(sqrt(attr(x, "postVar"))))
+
+ggplot(xdf, aes(x=rownames(xdf), y=X.Intercept.)) +
+  geom_point() +
+  geom_errorbar(aes(x=rownames(xdf), ymin=X.Intercept.-1.96*err, ymax=X.Intercept.+1.96*err))
+
+# TODO export and pretty!
+
+############## MODEL ASSESSMENT ##################
+# TODO: Is this ok???
+resids = resid(model3)
+preds = predict(model3)
+assesment_df = data.frame(resids=resids, preds=preds)
+
+ggplot(data=assesment_df, aes(x=preds, y=resids))+ geom_point()
+
+plot(step_model)
+
+
+
+
+
+
 
 ################# EXPORT TO CSV AREA ####################
 
 # write.csv(df, "Data/part1_df.csv")
 # conclude: Use state+region hierarchy
 
-df_with_pred = df #copy
+df_with_pred = df # copy
+#                  DANGER:  vvvvvv MODEL CHOICE!
 df_with_pred$pred = predict(model3, df)
-write.csv(df_with_pred, "Data/part1_df_with_predictions.csv")
+# write.csv(df_with_pred, "Data/part1_df_with_predictions.csv")
 
 # prediction plot
 I_WANT_TO_EXPORT_HUNDREDS_OF_CSVs = FALSE
@@ -226,10 +259,12 @@ for (row in rownames(overwrite_df)){
   
   overwrite_df[row, "pred"] = mean(preds)
   print(mean(preds))
-  write.csv(pred_df, paste0("Data/PredplotsData/part1_pred_df_", row, ".csv"))
+  # write.csv(pred_df, paste0("Data/PredplotsData/part1_pred_df_", row, ".csv"))
 }
 }
 
+
+########################## END OF CSV EXPORT AREA #############################
 
 
 # Resids by group
