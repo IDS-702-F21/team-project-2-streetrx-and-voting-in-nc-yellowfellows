@@ -117,13 +117,12 @@ ax.errorbar(
     df_dotplot_state["pointestimate"],
     df_dotplot_state["state"],
     xerr=1.96 * df_dotplot_state["err"],
-    capsize=2.5,
     zorder=0,
     color=DARKBLUE,
-    # ecolor=[
-    #     DARKBLUE if label.get_text() in highlight_states else "0.7"
-    #     for label in ax.get_yticklabels()
-    # ],
+    ecolor=[
+        DARKBLUE if label.get_text() in highlight_states else "0.7"
+        for label in ax.get_yticklabels()
+    ],
 )
 sns.despine()
 ax.axvline(0, zorder=-1, color="0.6", linestyle="--")
