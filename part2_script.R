@@ -10,10 +10,13 @@ library(dplyr)
 library(tidyr)
 library(data.table)
 library(purrr)
+library(arrow)
 
 # Subset 25 counties
+# TODO: Report on which ones were chosen!
 unique_counties = unique(voters$county_desc)
 set.seed(42); used_counties = sample(unique_counties, size=25)
+# print(paste("Used counties: ", as.vector(used_counties)))
 voters = voters %>% filter(county_desc %in% used_counties)
 assertthat::are_equal(sort(unique(voters$county_desc)), sort(used_counties))
 
@@ -30,14 +33,15 @@ for (var in vars_to_remove){
 
 # Aggregate the history data set 
 # TODO: User voter_party_cd instead of party_cd!!??
-agg_by = list(history$county_desc, history$precinct_abbrv, history$age, history$party_cd, history$race_code, history$ethnic_code, history$sex_code)
+agg_by = list(history$county_desc, history$precinct_abbrv, history$age, history$voted_party_cd, history$race_code, history$ethnic_code, history$sex_code)
 history_agg <- aggregate(history$total_voters, agg_by, sum)
-colnames(history_agg) = c("county_desc", "precinct_abbrv", "age", "party_cd", "race_code", "ethnic_code", "sex_code", "total_voters")
+colnames(history_agg) = c("county_desc", "precinct_abbrv", "age", "voted_party_cd", "race_code", "ethnic_code", "sex_code", "total_voters")
 
 # Joining 
 ## NOTE: simplified assumptions if any :)
 ## TODO consider replacing NAs with zeros; for actual > registered, consider lowering the actual to match
-df = left_join(voters, history_agg, suffix=c(".registered", ".actual"), by=c("county_desc", "precinct_abbrv", "age", "party_cd", "race_code", "ethnic_code", "sex_code"))
+voters$voted_party_cd = voters$party_cd  # ATTENTION: Aliasing so the join works
+df = left_join(voters, history_agg, suffix=c(".registered", ".actual"), by=c("county_desc", "precinct_abbrv", "age", "voted_party_cd", "race_code", "ethnic_code", "sex_code"))
 
 # replace NA voters with 0
 df$total_voters.actual = replace_na(df$total_voters.actual, 0)
@@ -67,6 +71,8 @@ ggplot(data=df, aes(x=turnout)) + geom_histogram(bins=10)
 ##### Bivariate Prop Tables #####
 # for EDA: disaggregate 
 df_long = df %>% mutate(new_response = map2(total_voters.actual, total_voters.registered, ~ c(rep(1, .x), rep(0, .y - .x)))) %>% unnest(cols = c(new_response))
+# write_parquet(df_long, "Data/part2_df_long.parquet")
+
 
 # vote vs sex
 prop.table(table(df_long$new_response, df_long$sex_code), 2)
