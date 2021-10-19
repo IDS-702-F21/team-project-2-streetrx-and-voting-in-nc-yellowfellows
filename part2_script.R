@@ -114,6 +114,28 @@ ggplot(data = df_long, aes(x=age, y=new_response, color=sex_code)) + geom_bar(po
 
 ############# MODELING #############
 
+null_model = glm(turnout ~ 1, weights=total_voters.registered, family=binomial(), data=df)
+full_model = glm(turnout ~ party_cd + race_code + ethnic_code + sex_code + age + total_voters.registered, weights=total_voters.registered, family=binomial(), data=df)
 
+step_model = step(null_model,
+                  scope=formula(full_model),
+                  direction='both',
+                  trace=0)
+summary(step_model)  # keeps all variables
+
+#model2 = glm(new_response ~ race_code + ethnic_code + sex_code + age, family=binomial(), data=df_long)
+#summary(model2)
+#glmer(, data=df, family=binomial)
+
+I_WANT_TO_WAIT_AGES_FOR_TRAINING = FALSE
+if (I_WANT_TO_WAIT_AGES_FOR_TRAINING){
+  # model3 = glmer(turnout ~ party_cd + race_code + ethnic_code + sex_code + age + total_voters.registered + (1 | county_desc), weights=total_voters.registered, family=binomial(), data=df)
+  model3 = glmer(turnout ~ ethnic_code + sex_code + age + (1 | county_desc), weights=total_voters.registered, family=binomial(), data=df)
+  save(model3, file="model3.Rdata")
+} else {
+  load("model3.Rdata")
+}
+
+summary(model3)
 
 
