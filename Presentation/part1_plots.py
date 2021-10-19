@@ -12,10 +12,10 @@ matplotlib_inline.backend_inline.set_matplotlib_formats("svg")
 plt.rcParams["font.family"] = "Arial"
 plt.rcParams["font.size"] = 16
 
-LIGHTBLUE = "#03529B"
+LIGHTBLUE = "#00539B"
 # MIDDLE = "#48A9A6"
 MIDDLE = "#053186"
-DARKBLUE = "#061953"
+DARKBLUE = "#012169"
 
 COL_DTYPES = {
     "ppm": "float",
@@ -59,7 +59,11 @@ raw_data = pd.read_parquet("../Data/part1_raw_data.parquet")
 #%%
 #################### Univariate ppm ####################
 fig, ax = plt.subplots(figsize=(10, 10))
-sns.histplot(raw_data["ppm"], bins=60, color=DARKBLUE, ec=DARKBLUE)
+sns.histplot(raw_data["ppm"], bins=60)
+
+for patch in ax.patches:
+    patch.set_color(DARKBLUE)
+    patch.set_edgecolor("0.9")
 
 # pct_line_ymaxs = [1750, 1500, 1000]
 pct_to_plot = [0.95, 0.99, 0.995]
@@ -79,7 +83,7 @@ for pct, ymax in zip(pct_to_plot, pct_line_ymaxs):
 # ax.text(x=20, y=500, s="Removing outliers > 95th percentile\ndeletes XXX data points.", bbox=dict(boxstyle='round', facecolor='white', alpha=0.5))
 ax.set_title("Distribution of ppm", weight="bold")
 sns.despine()
-
+plt.tight_layout()
 plt.savefig("Images/part1_univariate_ppm.png", facecolor="white", dpi=300)
 
 #%%
@@ -272,7 +276,7 @@ state_abbrevs
 
 import pandas as pd
 
-state_df = df_dotplot.copy()
+state_df = df_dotplot_state.copy()
 
 state_df = state_df.assign(state=state_df.state.replace(state_abbrevs)).rename(
     {"pointestimate": "Intercept"}, axis=1
