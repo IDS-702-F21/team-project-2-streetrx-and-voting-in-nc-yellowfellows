@@ -195,23 +195,28 @@ anova(model3, model1)  # CONCLUDE: Use state AND region
 ########## DOTPLOT ##############
 dotplot(ranef(model3))
 
+# State-level
 x = ranef(model3, condVar=TRUE)$state
-
-#sqrt(attr(x, "postVar"))
-#x$`(Intercept)`
-
 xdf = data.frame(pointest=ranef(model3, condVar=TRUE)$state, err=as.vector(sqrt(attr(x, "postVar"))))
 xdf$pointestimate = xdf$X.Intercept.
 xdf$state = rownames(xdf)
 xdf$X.Intercept. = NULL
+# write_parquet(xdf, "Data/part1_dotplot_data_state.parquet")
+
+# Region-level
+y = ranef(model3, condVar=TRUE)$USA_region
+ydf = data.frame(pointest=ranef(model3, condVar=TRUE)$USA_region, err=as.vector(sqrt(attr(y, "postVar"))))
+ydf$pointestimate = ydf$X.Intercept.
+ydf$state = rownames(ydf)
+ydf$X.Intercept. = NULL
+# write_parquet(ydf, "Data/part1_dotplot_data_region.parquet")
 
 ggplot(xdf, aes(x=rownames(xdf), y=pointestimate)) +
   geom_point() +
   geom_errorbar(aes(x=rownames(xdf), ymin=pointestimate-1.96*err, ymax=pointestimate+1.96*err))
 
-# write_parquet(xdf, "Data/part1_dotplot_data.parquet")
 
-# TODO export and pretty!
+
 
 ############## MODEL ASSESSMENT ##################
 # TODO: Is this ok???

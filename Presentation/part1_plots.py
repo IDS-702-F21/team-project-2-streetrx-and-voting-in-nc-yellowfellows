@@ -88,7 +88,55 @@ plt.savefig("Images/ppm_source_mgstr.png", facecolor="white", dpi=300)
 #%%
 #################### Random Intercepts by State ####################
 
-df_dotplot = pd.read_parquet("../Data/part1_dotplot_data.parquet").sort_values(
+df_dotplot = pd.read_parquet("../Data/part1_dotplot_data_state.parquet").sort_values(
+    by="pointestimate"
+)
+df_dotplot["state"] = df_dotplot["state"].astype("category")
+
+fig, ax = plt.subplots(figsize=(8, 10))
+
+sns.pointplot(
+    data=df_dotplot,
+    y="state",
+    x="pointestimate",
+    xerr=df_dotplot["err"],
+    order=df_dotplot["state"],
+    ax=ax,
+    color=DARKBLUE,
+    zorder=10,
+)
+
+highlight_states = ["California", "Arizona", "Tennessee"]
+ax.set_yticklabels(ax.get_yticklabels(), size=11)
+for label in ax.get_yticklabels():
+    label.set_color("k" if label.get_text() in highlight_states else "0.6")
+    label.set_weight("bold" if label.get_text() in highlight_states else "normal")
+    label.set_size(11.5 if label.get_text() in highlight_states else 10)
+
+ax.errorbar(
+    df_dotplot["pointestimate"],
+    df_dotplot["state"],
+    xerr=1.96 * df_dotplot["err"],
+    zorder=0,
+    color=DARKBLUE,
+    ecolor=[
+        DARKBLUE if label.get_text() in highlight_states else "0.7"
+        for label in ax.get_yticklabels()
+    ],
+)
+sns.despine()
+ax.axvline(0, zorder=-1, color="0.6", linestyle="--")
+ax.set_xlabel("(Intercept)")
+ax.set_ylabel("State")
+ax.set_title("Random Intercepts for States", weight="bold")
+ax.spines['left'].set_visible(False)
+ax.yaxis.set_tick_params(which="both", length=0)
+plt.savefig("Images/intercept_by_state.png", facecolor="white", dpi=300)
+
+#%%
+#################### Random Intercepts by Region ####################
+
+df_dotplot = pd.read_parquet("../Data/part1_dotplot_data_region.parquet").sort_values(
     by="pointestimate"
 )
 df_dotplot["state"] = df_dotplot["state"].astype("category")
