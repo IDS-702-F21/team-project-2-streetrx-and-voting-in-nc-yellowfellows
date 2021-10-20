@@ -33,24 +33,57 @@ Prescription opioid diversion and misuse are major public health issues, and str
 StreetRx provides useful information for pharmacoepidemiological research, health-policy analysis, and pharmacy-economic modeling. Therefore, we aim to analyze a multi-level model using StreetRX data to study characteristics associated to the price per mg of your medicine, allowing for potential clustering by area and examining variability in pricing by region. This study also looks at whether or not the factors provided are connected to price per milligram.
 
 # Data
-The data set used for the analysis is the subset with Methadone as an active ingredient. It contains six variables: the outcome variable `ppm`, `state`, `USA_region`, `source`, `mgstr` and `bulk_purchase`. The data set contains missing values in three variables of interest including the outcome variable [TODO: Show % missing??]. The factor variable `source` has high cardinality with few cases in certain factor levels. It has been decided to group some levels to have clearer picture in exploratory data analysis. So, all internet based sources are grouped into single level named "Internet" and values such as "None", "N/A" are grouped into "No Input" category. Moreover, all cases with missing `ppm` are removed, which in turn also eliminated rows with missing `mgstr` values. The variable `mgstr` has six unique values and numeric data type. After initial inspection `mgstr` variable is transformed to a factor variable and 1mg, 2.5mg and 15mg cases are filtered as they have only one or two cases per value [TODO: table of # per category]. The independent variable is highly skewed with a few outliers. After the check for typical methadone prices has been done, it has been decided to use the percentile method for ouliers removal with 95 percentile level as a cutoff [TODO: plot Distribution of ppm] [TODO: How many data points were removed? 138].
+The data set used for the analysis is the subset with Methadone as an active ingredient. It contains six variables: the outcome variable `ppm`, `state`, `USA_region`, `source`, `mgstr` and `bulk_purchase`. The data set contains missing values in three variables of interest including the outcome variable [TODO: Show % missing??].
+
+```{r echo=FALSE}
+load("../Data/streetrx.RData")
+df = streetrx[streetrx$api_temp == "methadone",]
+vars_to_remove = c("yq_pdate", "price_date", "city", "Primary_Reason", "country", "api_temp", "form_temp")
+for (var in vars_to_remove){
+  df[var] = NULL
+}
+df$fac_mgstr = as.factor(df$mgstr)
+levels(df$bulk_purchase) = c("Not Bulk", "Bulk")
+
+na_count = round(data.frame(apply(is.na(df), 2, mean)), 3) * 100
+na_count_t = transpose(na_count)
+colnames(na_count_t) <- rownames(na_count)
+rownames(na_count_t) <- colnames(na_count)
+
+knitr::kable(na_count_t, format="latex", booktabs=TRUE,
+             caption='Missing values percentage', row.names = FALSE) %>% 
+  kable_styling(latex_options=c("hold_position"))
+```
+
+The factor variable `source` has high cardinality with few cases in certain factor levels. It has been decided to group some levels to have clearer picture in exploratory data analysis. So, all internet based sources are grouped into single level named "Internet" and values such as "None", "N/A" are grouped into "No Input" category. Moreover, all cases with missing `ppm` are removed, which in turn also eliminated rows with missing `mgstr` values. The variable `mgstr` has six unique values and numeric data type. After initial inspection `mgstr` variable is transformed to a factor variable and 1mg, 2.5mg and 15mg cases are filtered as they have only one or two cases per value[TODO: table of # per category].
+
+```{r echo=FALSE}
+mgstrcount = transpose(df %>% count(mgstr))
+colnames(mgstrcount) = mgstrcount[1,]
+mgstrcount = cbind(data.frame(c("mgstr", "count")), mgstrcount)
+colnames(mgstrcount) = NULL
+colnames(mgstrcount) = mgstrcount[1,]
+mgstrcount = mgstrcount[-1, ] 
+rownames(mgstrcount) = NULL
+knitr::kable(mgstrcount, format="latex", booktabs=TRUE, caption='mgstr frequency') %>% 
+  kable_styling(latex_options=c("hold_position"))
+```
+
+The independent variable is highly skewed with a few outliers. After the check for typical methadone prices has been done, it has been decided to use the percentile method for ouliers removal with 95 percentile level as a cutoff [TODO: plot Distribution of ppm] [TODO: How many data points were removed? 138].
 
 !!! Not sure where to write about log scaling and normality assumption after outliers removal. !!!
 [TODO: Tried log scaling -> distribution looked better -> highly non-normal residuals when modeling -> remove outliers instead of log-ing]
 
 During EDA it has been found out using box plots that price per milligram distributions are about the same for different source levels. But, there is a tendency for lower prices with higher dosage strength. Interestingly, different regions have different median prices per methadone milligram. The same situation holds across the states [TODO: plot from PPT + ppm per region?]. Therefore, these variables may be potential candidate for a hierarchical model. Surprisingly, there is no much price difference by `bulk_purchase` variable. The only prominent interaction that has been observed is dosage strength by states. The trends are very different e.g. in Texas prices are getting lower with higher dosage strength and getting higher in Delaware.  
 
-- general description
-  - e.g. free entry = dirty data?
-- cleaning
-  - e.g. cosolidating factors
-  - removing unused levels (e.g. mgstr now only has 5, 10, 40)
-- outlier removal (first 99, then 95)
-  - alliviates need for log-scaling
-- EDA
-- Interactions
-
 # Model
+To fit the hierarchical linear regression model, we start modeling using a regular linear regression by defining a null model and full model to use in a stepwise regression process in order to build a parsimonious model. The null model contains only an intercept, whereas the full model contains all relevant variables from the data set without interactions as predictor variables. We use the AIC rather than BIC because the latter is too stringent and removes most variables from the model, which makes it hard to answer our inferential questions. The resulting model violated normality assumption. To fix that we tried to log transform `ppm` variable. Unfortunately, this does not help to meet normality assumption. Afterwards, we have taken original `ppm` variable and removed outliers using 95 percentile and that helps mitigate severe violation of the normality assumption. 
+Our stepwise model contains factorized `mgstr` and `source` as variables. All levels of `mgstr` are significant compared to baseline - "5 mg", but only "Internet" source is significant compared to baseline "Heard it". Having done with our foundational model we have checked potential interactions including: `source`:`fac_mgstr`, `source`:`bulk`, `fac_mgstr`:`bulk`. In order to do that we employ the ANOVA F-test to test our original stepwise model against the stepwise model plus interactions separately and find that none of them are significant.
+Given that the data set contains two potentially hierachical variables `USA_region`, `state` and both of them are promising according to our EDA, we have fit three random intercept hierarchical linear regression models using all the variables from the step model and including `USA_region` and `state` separately and combine them together.   
+
+
+
+
 - non-hierarchical linear model
 - adding hierarchy
 
