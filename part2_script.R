@@ -11,6 +11,7 @@ library(tidyr)
 library(data.table)
 library(purrr)
 library(arrow)
+library(lme4)
 
 # Subset 25 counties
 # TODO: Report on which ones were chosen!
@@ -32,15 +33,12 @@ for (var in vars_to_remove){
 }
 
 # Aggregate the history data set 
-# TODO: User voter_party_cd instead of party_cd!!??
 agg_by = list(history$county_desc, history$precinct_abbrv, history$age, history$voted_party_cd, history$race_code, history$ethnic_code, history$sex_code)
 history_agg <- aggregate(history$total_voters, agg_by, sum)
 colnames(history_agg) = c("county_desc", "precinct_abbrv", "age", "voted_party_cd", "race_code", "ethnic_code", "sex_code", "total_voters")
 
-# Joining 
-## NOTE: simplified assumptions if any :)
-## TODO consider replacing NAs with zeros; for actual > registered, consider lowering the actual to match
-voters$voted_party_cd = voters$party_cd  # ATTENTION: Aliasing so the join works
+# Joining
+voters$voted_party_cd = voters$party_cd  # Aliasing so the join works
 df = left_join(voters, history_agg, suffix=c(".registered", ".actual"), by=c("county_desc", "precinct_abbrv", "age", "voted_party_cd", "race_code", "ethnic_code", "sex_code"))
 
 # replace NA voters with 0
@@ -113,29 +111,32 @@ ggplot(data = df_long, aes(x=age, y=new_response, color=sex_code)) + geom_bar(po
 
 
 ############# MODELING #############
+# TODO: can we use total_voters.registered as predictor here???????
+null_model = glm(cbind(total_voters.actual, total_voters.registered - total_voters.actual) ~ 1, family=binomial(), data=df)
+full_model = glm(cbind(total_voters.actual, total_voters.registered - total_voters.actual) ~ party_cd + race_code + ethnic_code + sex_code + age, family=binomial(), data=df)
 
-null_model = glm(turnout ~ 1, weights=total_voters.registered, family=binomial(), data=df)
-full_model = glm(turnout ~ party_cd + race_code + ethnic_code + sex_code + age + total_voters.registered, weights=total_voters.registered, family=binomial(), data=df)
+summary(null_model)
+summary(full_model)
+# step_model = step(null_model,
+#                  scope=formula(full_model),
+#                  direction='both',
+#                  trace=0)
+# summary(step_model)  # keeps all variables
 
-step_model = step(null_model,
-                  scope=formula(full_model),
-                  direction='both',
-                  trace=0)
-summary(step_model)  # keeps all variables
-
-#model2 = glm(new_response ~ race_code + ethnic_code + sex_code + age, family=binomial(), data=df_long)
-#summary(model2)
+# model2 = glm(new_response ~ race_code + ethnic_code + sex_code + age + total_voters.registered, family=binomial(), data=df_long)
+# summary(model2)
 #glmer(, data=df, family=binomial)
 
-I_WANT_TO_WAIT_AGES_FOR_TRAINING = FALSE
-if (I_WANT_TO_WAIT_AGES_FOR_TRAINING){
-  # model3 = glmer(turnout ~ party_cd + race_code + ethnic_code + sex_code + age + total_voters.registered + (1 | county_desc), weights=total_voters.registered, family=binomial(), data=df)
-  model3 = glmer(turnout ~ ethnic_code + sex_code + age + (1 | county_desc), weights=total_voters.registered, family=binomial(), data=df)
-  save(model3, file="model3.Rdata")
-} else {
-  load("model3.Rdata")
-}
+# I_WANT_TO_WAIT_AGES_FOR_TRAINING = FALSE
+# if (I_WANT_TO_WAIT_AGES_FOR_TRAINING){
+#   # model3 = glmer(turnout ~ party_cd + race_code + ethnic_code + sex_code + age + total_voters.registered + (1 | county_desc), weights=total_voters.registered, family=binomial(), data=df)
+#   # model3 = glmer(turnout ~ ethnic_code + sex_code + age + (1 | county_desc), weights=total_voters.registered, family=binomial(), data=df)
+#   save(model3, file="model3.Rdata")
+# } else {
+#   load("model3.Rdata")
+# }
+# summary(model3)
 
-summary(model3)
 
-
+model4 <- glmer(cbind(total_voters.actual, total_voters.registered - total_voters.actual) ~ party_cd + race_code + ethnic_code + sex_code + age + total_voters.registered + (1 | county_desc), data=df, family=binomial, control=glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=2e5)))
+summary(model4)
