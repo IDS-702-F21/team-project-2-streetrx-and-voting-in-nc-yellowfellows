@@ -12,6 +12,8 @@ library(data.table)
 library(purrr)
 library(arrow)
 library(lme4)
+library(arm)
+library(lattice)
 
 # Subset 25 counties
 # TODO: Report on which ones were chosen!
@@ -137,6 +139,29 @@ summary(full_model)
 # }
 # summary(model3)
 
+I_WANT_TO_WAIT_AGES_FOR_TRAINING = FALSE
+if (I_WANT_TO_WAIT_AGES_FOR_TRAINING){
+  model4 <- glmer(cbind(total_voters.actual, total_voters.registered - total_voters.actual) ~ party_cd + ethnic_code + sex_code + age + (1 | county_desc), data=df, family=binomial, control=glmerControl(optimizer="Nelder_Mead", optCtrl=list(maxfun=2e5)))
+} else {
+ load("model4.Rdata")
+}
 
-model4 <- glmer(cbind(total_voters.actual, total_voters.registered - total_voters.actual) ~ party_cd + race_code + ethnic_code + sex_code + age + total_voters.registered + (1 | county_desc), data=df, family=binomial, control=glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=2e5)))
+
+############# Model Interpretation #############
 summary(model4)
+dotplot(ranef(model4))  # consistent with EDA
+
+
+
+
+############# Basic Model Assessment #############
+assess_df = data.frame(preds = fitted(model4), ytrue=df$turnout)
+assess_df$residuals = assess_df$preds - assess_df$ytrue
+
+# ggplot(data=assess_df, aes(x=ytrue, y=preds)) + geom_point()
+ggplot(data=assess_df, aes(x=preds, y=residuals)) + geom_point()
+
+
+
+
+
