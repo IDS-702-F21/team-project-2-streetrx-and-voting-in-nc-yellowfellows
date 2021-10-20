@@ -54,20 +54,35 @@ df$source = as.factor(df$source)
 
 
 ########## Fix NAs in ppm and mgstr ##########
-# TODO: Distribution of IVs by ppm_misssing/not-missing
+# TODO: Distribution of IVs by ppm_missing/not-missing
 # t = table(df[c("ppm_missing", "state")])
 # !!! ATTENTION, pls validate, see above:
 df = drop_na(df, "ppm")
 df = drop_na(df, "mgstr")  # NOTE: ppm missing -> mgstr missing so this has no effect
 
 
-###################### PRETTY TABLE BELOW ######################
+########################## PRETTY TABLE BELOW ############################
 
-transpose(df %>% count(mgstr))
+# table of mgstr counts... sorry this is a bit convoluted but it works
+mgstrcount = transpose(df %>% count(mgstr))
+colnames(mgstrcount) = mgstrcount[1,]
+mgstrcount = cbind(data.frame(c("mgstr", "count")), mgstrcount)
+colnames(mgstrcount) = NULL
+colnames(mgstrcount) = mgstrcount[1,]
+mgstrcount = mgstrcount[-1, ] 
+rownames(mgstrcount) = NULL
+knitr::kable(mgstrcount, format="latex", booktabs=TRUE) %>% 
+  kable_styling(latex_options=c("hold_position"))
 
-xtable(df %>% filter(mgstr %in% c(1, 2.5, 15)))
+# table for uncommon mgstr to remove
+removemg = df %>% filter(mgstr %in% c(1, 2.5, 15))
+removemg = removemg[, -5] 
+removemg$ppm = round(removemg$ppm, 2)
+removemg = removemg[, c("fac_mgstr", "ppm", "state", "USA_region", "source", "bulk_purchase")] 
+knitr::kable(removemg, format="latex", booktabs=TRUE) %>% 
+  kable_styling(latex_options=c("hold_position"))
 
-################################################################
+##########################################################################
 
 ######### Fix mgstr ######### 
 # mgstr 1, 2.5 and 15 have a) few data points and b) outlier ppm -> REMOVE
@@ -85,6 +100,7 @@ ggplot(data=df, aes(x=ppm)) + geom_histogram()  # few large outliers
 percentile_cuttoff = quantile(df$ppm, 0.95)
 df = df %>% filter(ppm <= percentile_cuttoff)
 # df$ppm = log(df$ppm)  # log yield SEVERE normality violation in modeling
+
 
 # ppm by source
 ggplot(data=df, aes(x=source, y=ppm)) + geom_boxplot()
@@ -143,6 +159,7 @@ summary(step_model)  # FINAL MODEL
 
 ########################## PRETTY TABLE BELOW ############################
 
+# did not use linear model summary here
 summary_step = summary(step_model)
 summaryprint = data.frame(summary_step$coefficients)
 
@@ -194,6 +211,38 @@ summary(model3)
 AIC(model3)
 
 anova(model3, model1)  # CONCLUDE: Use state AND region
+
+
+
+########################## PRETTY TABLE BELOW ############################
+
+# To print the model summary (fixed effects)
+summary_final = summary(model3)
+summaryprint = data.frame(summary_final$coefficients)
+
+# stars = c("***","***","***","***","***", ".", "**")
+# starsdf = data.frame(stars)
+
+confdf = confint(model3)
+confdf = confdf[4:length(confdf[,1]),]
+summarydf = cbind(round(summaryprint,2),round(confdf,4)) #,starsdf))
+
+colnames(summarydf) = c("Estimate","Std. Error","t value","Lower Bound","Upper Bound")
+knitr::kable(summarydf, format="latex", booktabs=TRUE) %>% 
+  kable_styling(latex_options=c("hold_position"))
+
+# print the std dev of random effects
+ranefprint = data.frame(summary_final$varcor)
+ranefprint = ranefprint[,-3]
+ranefprint[is.na(ranefprint)] = ""
+ranefprint[,3:4] = round(ranefprint[,3:4],4)
+colnames(ranefprint) = c("Groups","Name","Variance","Std.Dev.")
+
+knitr::kable(ranefprint, format="latex", booktabs=TRUE) %>% 
+  kable_styling(latex_options=c("hold_position"))
+
+##########################################################################
+
 
 
 ########## DOTPLOT ##############
