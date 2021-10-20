@@ -84,6 +84,7 @@ ggplot(data=df, aes(x=ppm)) + geom_histogram()  # few large outliers
 ## TODO: Should include reference for reasonable price to justify assumptions (i.e. typo)
 percentile_cuttoff = quantile(df$ppm, 0.95)
 df = df %>% filter(ppm <= percentile_cuttoff)
+# df$ppm = log(df$ppm)  # log yield SEVERE normality violation in modeling
 
 # ppm by source
 ggplot(data=df, aes(x=source, y=ppm)) + geom_boxplot()
@@ -194,6 +195,7 @@ AIC(model3)
 
 anova(model3, model1)  # CONCLUDE: Use state AND region
 
+
 ########## DOTPLOT ##############
 dotplot(ranef(model3))
 
@@ -223,12 +225,13 @@ ggplot(xdf, aes(x=rownames(xdf), y=pointestimate)) +
 ############## MODEL ASSESSMENT ##################
 # TODO: Is this ok???
 resids = resid(model3)
-preds = predict(model3)
+preds = fitted(model3)
 assesment_df = data.frame(resids=resids, preds=preds)
 
+# resid := ytrue - ypred
 ggplot(data=assesment_df, aes(x=preds, y=resids))+ geom_point()
 
-plot(step_model)
+qqnorm(resids, pch = 1, frame = FALSE); qqline(resids, col = "steelblue", lwd = 2)
 
 
 
