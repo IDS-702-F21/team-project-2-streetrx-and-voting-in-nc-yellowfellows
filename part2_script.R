@@ -35,29 +35,36 @@ for (var in vars_to_remove){
 }
 
 # Aggregate the history data set 
-agg_by = list(history$county_desc, history$precinct_abbrv, history$age, history$voted_party_cd, history$race_code, history$ethnic_code, history$sex_code)
+agg_by = list(history$county_desc, history$age, history$voted_party_cd, history$race_code, history$ethnic_code, history$sex_code)
 history_agg <- aggregate(history$total_voters, agg_by, sum)
-colnames(history_agg) = c("county_desc", "precinct_abbrv", "age", "voted_party_cd", "race_code", "ethnic_code", "sex_code", "total_voters")
+colnames(history_agg) = c("county_desc", "age", "voted_party_cd", "race_code", "ethnic_code", "sex_code", "total_voters")
+
+# Aggregate voters
+agg_by = list(voters$county_desc, voters$age, voters$party_cd, voters$race_code, voters$ethnic_code, voters$sex_code)
+voters_agg <- aggregate(voters$total_voters, agg_by, sum)
+colnames(voters_agg) = c("county_desc", "age", "party_cd", "race_code", "ethnic_code", "sex_code", "total_voters")
+
 
 # Joining
-voters$voted_party_cd = voters$party_cd  # Aliasing so the join works
-df = left_join(voters, history_agg, suffix=c(".registered", ".actual"), by=c("county_desc", "precinct_abbrv", "age", "voted_party_cd", "race_code", "ethnic_code", "sex_code"))
+# voters$voted_party_cd = voters$party_cd  # Aliasing so the join works
+colnames(history_agg)[3] = "party_cd"
+df = left_join(voters_agg, history_agg, suffix=c(".registered", ".actual"), by=c("county_desc", "age", "party_cd", "race_code", "ethnic_code", "sex_code"))
 
 # replace NA voters with 0
-df$total_voters.actual = replace_na(df$total_voters.actual, 0)
+# TODO: take out rows with no actual voters?
+# df$total_voters.actual = replace_na(df$total_voters.actual, 0)
+df = df %>% drop_na(total_voters.actual)
 
 # Transform: Lower number of actual voters to be at max number of registered voters
 deltas = df$total_voters.actual - df$total_voters.registered
 df[deltas > 0, "total_voters.actual"] = df[deltas > 0, "total_voters.actual"] - deltas[deltas > 0]
 
 # Fix dtypes
-factor_vars = c("county_desc", "precinct_abbrv", "party_cd", "race_code", "ethnic_code", "sex_code", "age")
+factor_vars = c("county_desc", "party_cd", "race_code", "ethnic_code", "sex_code", "age")
 for (fvar in factor_vars){
   df[,fvar] = as.factor(df[,fvar])
 }
 
-# Delete VTD column now
-df$vtd_abbrv = NULL
 
 # Voter Turnout
 df$turnout = df$total_voters.actual / df$total_voters.registered
@@ -141,7 +148,7 @@ summary(full_model)
 
 I_WANT_TO_WAIT_AGES_FOR_TRAINING = FALSE
 if (I_WANT_TO_WAIT_AGES_FOR_TRAINING){
-  model4 <- glmer(cbind(total_voters.actual, total_voters.registered - total_voters.actual) ~ party_cd + ethnic_code + sex_code + age + (1 | county_desc), data=df, family=binomial, control=glmerControl(optimizer="Nelder_Mead", optCtrl=list(maxfun=2e5)))
+  model4 <- glmer(cbind(total_voters.actual, total_voters.registered - total_voters.actual) ~ party_cd + race_code + ethnic_code + sex_code + age + (1 | county_desc) + sex_code:party_cd + age:party_cd, data=df, family=binomial, control=glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=2e5)))
 } else {
  load("model4.Rdata")
 }
