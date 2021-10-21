@@ -1,6 +1,6 @@
 ---
 title: \vspace{-1.5cm} **IDS702 Team Yellow Project II**
-author: Anna Dai, Athena Liu, Dauren Bizhanov, Himangshu Raj Bhantana, Moritz Wilksch
+author: Anna Dai(Presenter), Athena Liu (Checker), Dauren Bizhanov (Writer), Himangshu Raj Bhantana (Coordinator), Moritz Wilksch (Programmer)
 date: October 16, 2021
 output: pdf_document
 ---
@@ -27,6 +27,9 @@ library(stargazer)
 
 
 # Summary
+ * Recap focus
+ * Short summary of methods
+ * Result
 
 # Introduction
 Prescription opioid diversion and misuse are major public health issues, and street pricing reflects medication availability, demand, and potential abuse. However, such information can be difficult to obtain, and in an age of Internet-based social networks, crowdsourcing seems to be an effective solution. Nevertheless, for our study, we use data provided by StreetRx. StreetRx is a web-based citizen reporting tool that collects real-time street price data on diverted pharmaceutical medicines. Users can anonymously report amounts they paid or heard were paid for diverted prescription drugs on the site, which is based on crowdsourcing ideas for public health surveillance. The Researched Abuse, Diversion, and Addiction-Related Surveillance System (RADARS), a surveillance system that collects product- and geographically-specific data on prescription drug abuse, misuse, and diversion, works closely with StreetRx. In November 2010, the site was launched in the United States. Over 300,000 reports of diverted medication pricing have been filed since then. Australia, Canada, France, Germany, Italy, Spain, and the United Kingdom have all joined the StreetRx family.
@@ -170,3 +173,7 @@ knitr::include_graphics(c("../Presentation/Images/intercept_by_region.png","../P
 
 
 # Conclusion
+* Recap focus
+* Recap results
+* elaborate interpretation
+* limitation and future work
