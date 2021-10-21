@@ -87,6 +87,23 @@ plt.tight_layout()
 plt.savefig("Images/part1_univariate_ppm.png", facecolor="white", dpi=300)
 
 #%%
+#################### Univariate ppm AFTER CUT ####################
+fig, ax = plt.subplots(figsize=(10, 10))
+pct95 = np.quantile(raw_data["ppm"].dropna(), 0.95)
+sns.histplot(raw_data.query("ppm <= @pct95")["ppm"], bins=10)
+
+for patch in ax.patches:
+    patch.set_color(DARKBLUE)
+    patch.set_edgecolor("0.9")
+
+
+ax.set_title("Distribution of ppm After Cut", weight="bold")
+sns.despine()
+plt.tight_layout()
+plt.savefig("Images/part1_univariate_ppm_after_cut.png", facecolor="white", dpi=300)
+
+
+#%%
 #################### ppm by state for sample states ####################
 
 # clean_df.groupby("state")["ppm"].agg(["median", "min", "max", "count"]).sort_values(
