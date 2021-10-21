@@ -330,6 +330,8 @@ ax.axhline(0, ls="--", color="0.7", zorder=1)
 
 sns.despine()
 ax.set_title("Residuals vs. Fitted", weight="bold")
+ax.set_xlabel("Fitted Values")
+ax.set_ylabel("Residuals")
 plt.tight_layout()
 plt.savefig("Images/lm_resid_fitted.png", facecolor="white", dpi=300)
 
