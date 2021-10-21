@@ -79,7 +79,7 @@ knitr::include_graphics(c("../Presentation/Images/part1_univariate_ppm.png","../
 
 During EDA it has been found out using box plots that price per milligram distributions are about the same for different source levels. But, there is a tendency for lower prices with higher dosage strength. Interestingly, different regions have different median prices per methadone milligram. The same situation holds across the states [TODO: plot from PPT + ppm per region?].
 
-Therefore, these variables may be potential candidate for a hierarchical model. Surprisingly, there is no much price difference by `bulk_purchase` variable. The only prominent interaction that has been observed is dosage strength by states. The trends are very different e.g. in Texas prices are getting lower with higher dosage strength and getting higher in Delaware.  
+Therefore, these variables may be potential candidates for a hierarchical model. Surprisingly, there is no much price difference by `bulk_purchase` variable. The only prominent interaction that has been observed is dosage strength by states. The trends are very different e.g. in Texas prices are getting lower with higher dosage strength and getting higher in Delaware.  
 
 # Model
 To fit the hierarchical linear regression model, we start modeling using a regular linear regression by defining a null model and full model to use in a stepwise regression process in order to build a parsimonious model. The null model contains only an intercept, whereas the full model contains all relevant variables from the data set without interactions as predictor variables. We use the AIC rather than BIC because the latter is too stringent and removes most variables from the model, which makes it hard to answer our inferential questions. The resulting model violated normality assumption. To fix that we tried to log transform `ppm` variable. Unfortunately, this does not help to meet normality assumption and makes residuals even less normal than before the transformation. Afterwards, we have taken original `ppm` variable and removed outliers using 95 percentile and that helps mitigate severe violation of the normality assumption. 
@@ -138,12 +138,15 @@ summaryprint = data.frame(summary_final$coefficients)
 summaryprint$df = NULL
 confdf = confint(state_and_region)
 confdf = confdf[4:length(confdf[,1]),]
-summarydf = cbind(round(summaryprint,2),round(confdf,4)) #,starsdf))
+summarydf = cbind(round(summaryprint,4),round(confdf,4)) #,starsdf))
 
 colnames(summarydf) = c("Estimate","Std. Error","t value", "p value","Lower Bound","Upper Bound")
 knitr::kable(summarydf, format="latex", booktabs=TRUE, caption="Fixed effects of the hierarchical linear regression model") %>% 
   kable_styling(latex_options=c("hold_position"))
 ```
+
+All the fixed effects in the final model are significant except the "No Input" category of `source` variable in comparison to the baseline "Heard of". As all fixed effects coefficients are negative, we can conclude that the highest price is predicted when all fixed effects are at the baseline levels.
+Random effects standard deviation for `state` variable is 0.057 and `USA_regions` is 0.0456 which are 10.6% and 8.5% accordingly of the whole variance which means that there is a lot of variation unexplained by these variables. 
 
 ```{r echo=FALSE}
 ranefprint = data.frame(summary_final$varcor)
@@ -155,6 +158,8 @@ colnames(ranefprint) = c("Groups","Name","Variance","Std.Dev.")
 knitr::kable(ranefprint, format="latex", booktabs=TRUE, caption="Varience of the random effects") %>% 
   kable_styling(latex_options=c("hold_position"))
 ```
+
+Moreover, we have only one significant region which accounted for `USA_regions` variable. Price per milligram in the South tends to be higher than in different regions. There are three significant states: California, Arizona and Tennesse. 
 
 ```{r, echo=FALSE,out.width="70%", out.height="35%",fig.cap="ppm and ppm by state distributions",fig.show='hold',fig.align='center'}
 
