@@ -311,12 +311,25 @@ import statsmodels.api as sm
 lm_df = pd.read_csv("../Data/lm_df.csv", index_col="Unnamed: 0", dtype=COL_DTYPES)
 
 #%%
-fig, ax = plt.subplots(figsize=(8, 8))
+fig, ax = plt.subplots(figsize=(8, 6))
 
 resids = lm_df.ppm - lm_df.pred
-sm.qqplot(resids, stats.norm(loc=resids.mean(), scale=resids.std()), ax=ax, line="45", mfc=LIGHTBLUE)
+sm.qqplot(resids, stats.norm(loc=resids.mean(), scale=resids.std()), ax=ax, line="45", markerfacecolor=DARKBLUE, mec=DARKBLUE)
 sns.despine()
+ax.set_title("QQ-Plot of Residuals", weight="bold")
+plt.tight_layout()
+plt.savefig("Images/lm_qqplot_residuals.png", facecolor="white", dpi=300)
+
 # sm.qqplot(lm_df.pred, stats.norm(loc=lm_df.pred.mean(), scale=lm_df.pred.std()), ax=ax, line="45")
 
 #%%
-sns.histplot(lm_df.ppm - lm_df.pred)
+############### Resdiuals vs. Fitted ################
+fig, ax = plt.subplots(figsize=(8, 6))
+sns.scatterplot(data=lm_df, x="pred", y=resids, ax=ax, color=DARKBLUE, zorder=10)
+ax.axhline(0, ls="--", color="0.7", zorder=1)
+
+sns.despine()
+ax.set_title("Residuals vs. Fitted", weight="bold")
+plt.tight_layout()
+plt.savefig("Images/lm_resid_fitted.png", facecolor="white", dpi=300)
+
