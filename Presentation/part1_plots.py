@@ -304,4 +304,20 @@ fig.write_image("Images/us-map.png", scale=5)
 
 
 #%%
+############### QQ Plot ################
+from statsmodels.graphics.gofplots import qqplot
 
+#%%
+fig, ax = plt.subplots(figsize=(8, 8))
+qqplot(clean_df.pred.values, line="45", ax=ax)
+
+#%%
+import scipy.stats as stats
+import statsmodels.api as sm
+fig, ax = plt.subplots(figsize=(8, 8))
+
+resids = clean_df.pred - clean_df.ppm
+sm.qqplot(resids, stats.norm(loc=resids.mean(), scale=resids.std()), ax=ax, line="45")
+
+#%%
+sns.histplot(clean_df.pred - clean_df.ppm)

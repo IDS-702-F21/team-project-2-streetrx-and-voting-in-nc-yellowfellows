@@ -39,7 +39,7 @@ agg_by = list(history$county_desc, history$age, history$voted_party_cd, history$
 history_agg <- aggregate(history$total_voters, agg_by, sum)
 colnames(history_agg) = c("county_desc", "age", "voted_party_cd", "race_code", "ethnic_code", "sex_code", "total_voters")
 
-# Aggregate voters
+# Aggregate the voters data set
 agg_by = list(voters$county_desc, voters$age, voters$party_cd, voters$race_code, voters$ethnic_code, voters$sex_code)
 voters_agg <- aggregate(voters$total_voters, agg_by, sum)
 colnames(voters_agg) = c("county_desc", "age", "party_cd", "race_code", "ethnic_code", "sex_code", "total_voters")
@@ -51,7 +51,6 @@ colnames(history_agg)[3] = "party_cd"
 df = left_join(voters_agg, history_agg, suffix=c(".registered", ".actual"), by=c("county_desc", "age", "party_cd", "race_code", "ethnic_code", "sex_code"))
 
 # replace NA voters with 0
-# TODO: take out rows with no actual voters?
 # df$total_voters.actual = replace_na(df$total_voters.actual, 0)
 df = df %>% drop_na(total_voters.actual)
 
@@ -70,7 +69,6 @@ for (fvar in factor_vars){
 df$turnout = df$total_voters.actual / df$total_voters.registered
 
 #################### EDA ######################
-# TODO: KEEP ALL DEMOGRAPHIC DATA SO FOCUS ONLY ON INTERACTIONS 
 # -> when you have a lot of data, they will all be significant so it's more about what you're interested in
 
 ggplot(data=df, aes(x=turnout)) + geom_histogram(bins=10)
@@ -107,9 +105,11 @@ cond_prob <- function (df, col1, col2) {
 }
 
 # party_cd x age
+# POI: Pretty up for report
 ggplot(data = df_long, aes(x=party_cd, y=new_response, color=age)) + geom_bar(position = "dodge", stat = "summary", fun.y = "mean") + theme_classic() # **
 
 # party_cd x sex
+# POI: Pretty up for report
 ggplot(data = df_long, aes(x=party_cd, y=new_response, color=sex_code)) + geom_bar(position = "dodge", stat = "summary", fun.y = "mean") + theme_classic() # ***
 
 # party_cd x race
@@ -120,31 +120,17 @@ ggplot(data = df_long, aes(x=age, y=new_response, color=sex_code)) + geom_bar(po
 
 
 ############# MODELING #############
-# TODO: can we use total_voters.registered as predictor here???????
 null_model = glm(cbind(total_voters.actual, total_voters.registered - total_voters.actual) ~ 1, family=binomial(), data=df)
 full_model = glm(cbind(total_voters.actual, total_voters.registered - total_voters.actual) ~ party_cd + race_code + ethnic_code + sex_code + age, family=binomial(), data=df)
 
 summary(null_model)
 summary(full_model)
-# step_model = step(null_model,
-#                  scope=formula(full_model),
-#                  direction='both',
-#                  trace=0)
-# summary(step_model)  # keeps all variables
+step_model = step(null_model,
+                scope=formula(full_model),
+                direction='both',
+                trace=0)
+summary(step_model)  # keeps all variables
 
-# model2 = glm(new_response ~ race_code + ethnic_code + sex_code + age + total_voters.registered, family=binomial(), data=df_long)
-# summary(model2)
-#glmer(, data=df, family=binomial)
-
-# I_WANT_TO_WAIT_AGES_FOR_TRAINING = FALSE
-# if (I_WANT_TO_WAIT_AGES_FOR_TRAINING){
-#   # model3 = glmer(turnout ~ party_cd + race_code + ethnic_code + sex_code + age + total_voters.registered + (1 | county_desc), weights=total_voters.registered, family=binomial(), data=df)
-#   # model3 = glmer(turnout ~ ethnic_code + sex_code + age + (1 | county_desc), weights=total_voters.registered, family=binomial(), data=df)
-#   save(model3, file="model3.Rdata")
-# } else {
-#   load("model3.Rdata")
-# }
-# summary(model3)
 
 I_WANT_TO_WAIT_AGES_FOR_TRAINING = FALSE
 if (I_WANT_TO_WAIT_AGES_FOR_TRAINING){
@@ -166,7 +152,7 @@ assess_df = data.frame(preds = fitted(model4), ytrue=df$turnout)
 assess_df$residuals = assess_df$preds - assess_df$ytrue
 
 # ggplot(data=assess_df, aes(x=ytrue, y=preds)) + geom_point()
-ggplot(data=assess_df, aes(x=preds, y=residuals)) + geom_point()
+ggplot(data=assess_df, aes(x=preds, y=residuals)) + geom_point(alpha=0.2)
 
 
 
