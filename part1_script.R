@@ -162,7 +162,11 @@ summary(step_model)  # FINAL MODEL
 # write.csv(lm_df, "Data/lm_df.csv")
 
 
-########################## PRETTY TABLE BELOW ############################
+####################### PRETTY TABLE & PLOT BELOW #########################
+
+# cooks distance plot for linear model
+plot(step_model, which=5, pch=16, col='#061953', cex=0.8, sub="", frame.plot=FALSE)
+
 
 # did not use linear model summary here
 summary_step = summary(step_model)
@@ -218,8 +222,8 @@ AIC(model3)
 anova(model3, model1)  # CONCLUDE: Use state AND region
 
 
-
 ########################## PRETTY TABLE BELOW ############################
+          
 
 # To print the model summary (fixed effects)
 summary_final = summary(model3)
