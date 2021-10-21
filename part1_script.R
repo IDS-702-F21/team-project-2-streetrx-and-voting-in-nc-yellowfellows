@@ -156,6 +156,11 @@ step_model <- step(null_model,
 
 summary(step_model)  # FINAL MODEL
 
+# Export for plots
+# lm_df = df
+# lm_df$pred = fitted(step_model)
+# write.csv(lm_df, "Data/lm_df.csv")
+
 
 ########################## PRETTY TABLE BELOW ############################
 
@@ -278,7 +283,7 @@ preds = fitted(model3)
 assesment_df = data.frame(resids=resids, preds=preds)
 
 # resid := ytrue - ypred
-ggplot(data=assesment_df, aes(x=preds, y=resids))+ geom_point()
+ggplot(data=assesment_df, aes(x=preds, y=resids)) + geom_point()
 
 qqnorm(resids, pch = 1, frame = FALSE); qqline(resids, col = "steelblue", lwd = 2)
 

@@ -304,20 +304,19 @@ fig.write_image("Images/us-map.png", scale=5)
 
 
 #%%
-############### QQ Plot ################
-from statsmodels.graphics.gofplots import qqplot
-
-#%%
-fig, ax = plt.subplots(figsize=(8, 8))
-qqplot(clean_df.pred.values, line="45", ax=ax)
-
-#%%
+############### QQ Plot of Linear Model ################
 import scipy.stats as stats
 import statsmodels.api as sm
-fig, ax = plt.subplots(figsize=(8, 8))
 
-resids = clean_df.pred - clean_df.ppm
-sm.qqplot(resids, stats.norm(loc=resids.mean(), scale=resids.std()), ax=ax, line="45")
+lm_df = pd.read_csv("../Data/lm_df.csv", index_col="Unnamed: 0", dtype=COL_DTYPES)
 
 #%%
-sns.histplot(clean_df.pred - clean_df.ppm)
+fig, ax = plt.subplots(figsize=(8, 8))
+
+resids = lm_df.ppm - lm_df.pred
+sm.qqplot(resids, stats.norm(loc=resids.mean(), scale=resids.std()), ax=ax, line="45", mfc=LIGHTBLUE)
+sns.despine()
+# sm.qqplot(lm_df.pred, stats.norm(loc=lm_df.pred.mean(), scale=lm_df.pred.std()), ax=ax, line="45")
+
+#%%
+sns.histplot(lm_df.ppm - lm_df.pred)
