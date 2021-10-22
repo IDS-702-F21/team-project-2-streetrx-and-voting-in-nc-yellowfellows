@@ -119,6 +119,25 @@ ggplot(data = df_long, aes(x=party_cd, y=new_response, color=race_code)) + geom_
 ggplot(data = df_long, aes(x=age, y=new_response, color=sex_code)) + geom_bar(position = "dodge", stat = "summary", fun.y = "mean") + theme_classic() # ***
 
 
+# turnout vs. age by county
+ggplot(data = df_long, aes(x=age, y=new_response)) + geom_bar(position = "dodge", stat = "summary", fun.y = "mean") + facet_wrap(~ county_desc) + theme_classic() # NS
+
+# turnout vs. party by county
+ggplot(data = df_long, aes(x=party_cd, y=new_response)) + geom_bar(position = "dodge", stat = "summary", fun.y = "mean") + facet_wrap(~ county_desc) + theme_classic() # *?
+
+
+# turnout vs. sex by county
+ggplot(data = df_long, aes(x=sex_code, y=new_response)) + geom_bar(position = "dodge", stat = "summary", fun.y = "mean") + facet_wrap(~ county_desc) + theme_classic() # *?
+
+
+# turnout vs. race by county
+# ggplot(data = df_long, aes(x=race_code, y=new_response)) + geom_bar(position = "dodge", stat = "summary", fun.y = "mean") + facet_wrap(~ county_desc) + theme_classic() # *?
+
+# turnout vs. ethnic_code by county
+# ggplot(data = df_long, aes(x=ethnic_code, y=new_response)) + geom_bar(position = "dodge", stat = "summary", fun.y = "mean") + facet_wrap(~ county_desc) + theme_classic() # *?
+# -> too few data points in HL cat
+
+
 ############# MODELING #############
 null_model = glm(cbind(total_voters.actual, total_voters.registered - total_voters.actual) ~ 1, family=binomial(), data=df)
 full_model = glm(cbind(total_voters.actual, total_voters.registered - total_voters.actual) ~ party_cd + race_code + ethnic_code + sex_code + age, family=binomial(), data=df)
@@ -140,6 +159,12 @@ if (I_WANT_TO_WAIT_AGES_FOR_TRAINING){
 }
 
 
+pred_df = df
+pred_df$pred = fitted(model4)
+# write_parquet(pred_df, "Data/part2_pred_df.parquet")
+
+ggplot(data=pred_df, aes(x=race_code, y=pred)) + geom_boxplot()
+
 ############# Model Interpretation #############
 summary(model4)
 dotplot(ranef(model4))  # consistent with EDA
@@ -155,6 +180,8 @@ assess_df$residuals = assess_df$preds - assess_df$ytrue
 ggplot(data=assess_df, aes(x=preds, y=residuals)) + geom_point(alpha=0.2)
 
 
-
+############ Trying out Random Slopes ###########
+# model5 <- glmer(cbind(total_voters.actual, total_voters.registered - total_voters.actual) ~ party_cd + race_code + ethnic_code + age + (1 | county_desc) + age:party_cd + (sex_code | county_desc), data=df, family=binomial, control=glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=2e5)))
+# Convergence errors: (sex_code | county_desc) & (party_cd | county_desc)
 
 

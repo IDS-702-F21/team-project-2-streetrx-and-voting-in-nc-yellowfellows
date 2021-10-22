@@ -17,6 +17,28 @@ MIDDLE = "#053186"
 DARKBLUE = "#061953"
 
 #%%
-df_long = pd.read_parquet("../Data/part2_df_long.parquet")
+df_pred = pd.read_parquet("../Data/part2_pred_df.parquet")
 #%%
-df_long
+sns.pointplot(
+    data=df_pred,
+    x='party_cd',
+    y='pred',
+    hue="sex_code"
+)
+
+#%%
+sns.pointplot(
+    data=df_pred,
+    x='party_cd',
+    y='pred',
+    hue="age",
+    order="DEM REP CST GRE LIB UNA".split()
+)
+
+#%%
+sns.pointplot(
+    data=df_pred,
+    x='race_code',
+    y='pred',
+    # hue="sex_code"
+)
