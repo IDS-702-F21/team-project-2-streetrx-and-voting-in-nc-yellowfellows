@@ -35,7 +35,7 @@ library(stargazer)
 Prescription opioid diversion and misuse are major public health issues, and street pricing reflects medication availability, demand, and potential abuse. However, such information can be difficult to obtain, and in an age of Internet-based social networks, crowdsourcing seems to be an effective solution. Nevertheless, for our study, we use data provided by StreetRx. StreetRx is a web-based citizen reporting tool that collects real-time street price data on diverted pharmaceutical medicines. Based on crowdsourcing ideas for public health surveillance, users can anonymously report drug prices they paid or heard were paid for diverted prescription drugs on the website. This study utilizes the product- and geographically-specific data on the drug Methadone from StreetRx. Methadone is an opioid class medication that helps to reduce drug withdrawal symptoms for other narcotic drugs. Unfortunately, methadone itself is also addictive. Knowing the price of methadone on the street would be crucial to preventing drug abuse, misuse, and the diversion of prescription drugs; thus, this study focuses on exploring factors that influence the price of methadone per milligram. We aim to analyze a multi-level model to study characteristics associated with the price per mg of methadone, allowing for potential clustering by area and examining variability in pricing by region. 
 
 # Data
-The data set used for the analysis is the subset with Methadone as an active ingredient. It contains six variables: the outcome variable `ppm`, `state`, `USA_region`, `source`, `mgstr` and `bulk_purchase`. The data set contains missing values in two variables of interest including the outcome variable [TODO: Show % missing??].
+The data set used for the analysis is the subset with Methadone as an active ingredient. It contains six variables: the outcome variable `ppm`, `state`, `USA_region`, `source`, `mgstr` and `bulk_purchase`. The data set contains missing values in two variables of interest including the outcome variable.
 
 ```{r echo=FALSE}
 load("../Data/streetrx.RData")
@@ -58,9 +58,18 @@ knitr::kable(na_count_t, format="latex", booktabs=TRUE,
   kable_styling(latex_options=c("hold_position"))
 ```
 
-The factor variable `source` has high cardinality with few cases in certain factor levels. It has been decided to group some levels to have clearer picture in exploratory data analysis. So, all internet based sources are grouped into single level named "Internet" and values such as "None", "N/A" are grouped into "No Input" category. Moreover, all cases with missing `ppm` are removed, which in turn also eliminated rows with missing `mgstr` values. The variable `mgstr` has six unique values and numeric data type. After initial inspection `mgstr` variable is transformed to a factor variable and 1mg, 2.5mg and 15mg cases are filtered as they have only one or two cases per value[TODO: table of # per category].
+The factor variable `source` has high cardinality with few cases in certain factor levels. It has been decided to group some levels to have clearer picture in exploratory data analysis. So, all internet based sources are grouped into single level named "Internet" and values such as "None", "N/A" are grouped into "No Input" category. Moreover, all cases with missing `ppm` are removed, which in turn also eliminated rows with missing `mgstr` values. The variable `mgstr` has six unique values and numeric data type. After initial inspection `mgstr` variable is transformed to a factor variable and 1mg, 2.5mg and 15mg cases are filtered as they have only one or two cases per value.
 
 ```{r echo=FALSE}
+df$source = as.character(df$source)
+url_regex = "(http://|\\.)"
+df$source[grepl(url_regex, df$source)] = "Internet"
+df$source[df$source %in% c("", "N/A", "None")] = "No Input"
+df$source[df$source %in% c("google", "Internet Pharmacy", "Poopy,", "Streetrx")] = "Internet"
+df$source = as.factor(df$source)
+df = drop_na(df, "ppm")
+df = drop_na(df, "mgstr")
+
 mgstrcount = transpose(df %>% count(mgstr))
 colnames(mgstrcount) = mgstrcount[1,]
 mgstrcount = cbind(data.frame(c("mgstr", "count")), mgstrcount)
@@ -72,16 +81,15 @@ knitr::kable(mgstrcount, format="latex", booktabs=TRUE, caption='mgstr frequency
   kable_styling(latex_options=c("hold_position"))
 ```
 
-The independent variable is highly skewed with a few outliers. The log transformation looks promising and it will be examined further during the modeling phase. After the check for typical methadone prices has been done, it has been decided to use the percentile method for ouliers removal with 95 percentile level as a cutoff. Overall 181 data points were removed. [TODO: plot Distribution of ppm] [TODO: How many data points were removed? 181].
+The independent variable is highly skewed with a few outliers. The log transformation looks promising and it will be examined further during the modeling phase. After the check for typical methadone prices has been done and according to H.Suratt et al. the median price for Methadone is $1.00 (H.Suratt et al. 2013), it has been decided to use the percentile method for ouliers removal with 95 percentile level as a cutoff. Overall 181 data points were removed.
 
 ```{r, echo=FALSE,out.width="70%", out.height="35%",fig.cap="ppm and ppm by state distributions",fig.show='hold',fig.align='center'}
 
 knitr::include_graphics(c("../Presentation/Images/part1_univariate_ppm.png","../Presentation/Images/part1_ppm_per_state.png"))
 ``` 
 
-During EDA it has been found out using box plots that price per milligram distributions are about the same for different source levels. But, there is a tendency for lower prices with higher dosage strength. Interestingly, different regions have different median prices per methadone milligram. The same situation holds across the states [TODO: plot is only a sample].
-
-Therefore, these variables may be potential candidates for a hierarchical model. Surprisingly, there is no much price difference by `bulk_purchase` variable. As for the interaction observed between dosage strength and state, except for Texas and Delaware, the trend of `ppm` by dosage strength remains consistent across states. Therefore, for modeling, we decide to explore varying intercepts as opposed to random slopes.
+During EDA it has been found out using box plots that price per milligram distributions are about the same for different source levels. But, there is a tendency for lower prices with higher dosage strength. Interestingly, different regions have different median prices per methadone milligram. The same situation holds across the states which can be seen in the plot above which shows only a subset of states. Therefore, these variables may be potential candidates for a hierarchical model and as different states contain different amount of observations a hierarchical model may be better choice than multivariate linear regression with `state` and `USA_regions` as categorical variables.
+Surprisingly, there is no much price difference by `bulk_purchase` variable. As for the interaction observed between dosage strength and state, except for Texas and Delaware, the trend of `ppm` by dosage strength remains consistent across states. Therefore, for modeling, we decide to explore varying intercepts as opposed to random slopes.
 
 # Model
 To fit the hierarchical linear regression model, we start modeling using a regular linear regression by defining a null model and full model to use in a stepwise regression process in order to build a parsimonious model. The null model contains only an intercept, whereas the full model contains all relevant variables from the data set without interactions as predictor variables. We use the AIC rather than BIC because the latter is too stringent and removes most variables from the model, which makes it hard to answer our inferential questions. The resulting model violated normality assumption. To fix that we tried to log transform `ppm` variable. Unfortunately, this does not help to meet normality assumption and makes residuals even less normal than before the transformation. Afterwards, we have taken original `ppm` variable and removed outliers using 95 percentile and that helps mitigate severe violation of the normality assumption. 
@@ -103,18 +111,14 @@ Random Intercept Hierarchical models AIC
 
 In addition, the Anova F-test has been done and adding second random intercept is significant. Thus, the final model contains `mgstr`, `source`, `bulk_purchase` and two hierarchical variables `state`, `USA_region`.
 
-[TODO: formula]
+$$ {\rm ppm}_i = (\beta_{0} + \gamma_{0j} + \psi_{0j}) + \beta_1\cdot{\rm mgstr}_{ij} + \beta_2\cdot{\rm bulk\_purchase}_{ij}+\beta_3\cdot{\rm source}_{ij} + \varepsilon_{ij} \\$$
+$$ \varepsilon_{ij} \sim \mathcal{N}(0, \sigma^2), i=1, ..., n; j=1,...,J $$
+$$ \gamma_{ij} \sim \mathcal{N}(0, \tau_{0}^2), i=1, ..., n; j=1,...,J $$
+$$ \psi_{ij} \sim \mathcal{N}(0, \varsigma_{0}^2), i=1, ..., n; j=1,...,J $$
 
 ```{r echo=FALSE, results='asis'}
 # Preprocessing
-df$source = as.character(df$source)
-url_regex = "(http://|\\.)"
-df$source[grepl(url_regex, df$source)] = "Internet"
-df$source[df$source %in% c("", "N/A", "None")] = "No Input"
-df$source[df$source %in% c("google", "Internet Pharmacy", "Poopy,", "Streetrx")] = "Internet"
-df$source = as.factor(df$source)
-df = drop_na(df, "ppm")
-df = drop_na(df, "mgstr")
+
 df = df %>% filter(mgstr %in% c(5, 10, 40))
 percentile_cuttoff = quantile(df$ppm, 0.95)
 df = df %>% filter(ppm <= percentile_cuttoff)
@@ -132,7 +136,10 @@ cat("\\end{center}")
 
 As mentioned before, our final model satisfies all linear regression assumptions. However, fitter versus residuals plot has weird artifacts due to the fact that the data set contains only categorical variables.
 
-[TODO: QQPlot?, fitter vs residuals?]
+```{r, echo=FALSE,out.width="33%", out.height="30%",fig.cap="Model assessment plots",fig.show='hold'}
+
+knitr::include_graphics(c("../Presentation/Images/lm_qqplot_residuals.png","../Presentation/Images/lm_resid_fitted.png", "../Presentation/Images/lm_cooks(in r).png"))
+``` 
 
 ```{r echo=FALSE}
 summary_final = summary(state_and_region)
@@ -163,12 +170,17 @@ knitr::kable(ranefprint, format="latex", booktabs=TRUE, caption="Varience of the
 
 Moreover, we have only one significant region which accounted for `USA_regions` variable. Price per milligram in the South tends to be higher than in different regions. There are three significant states: California, Arizona and Tennesse. 
 
-```{r, echo=FALSE,out.width="70%", out.height="35%",fig.cap="ppm and ppm by state distributions",fig.show='hold',fig.align='center'}
+```{r, echo=FALSE,out.width="70%", out.height="30%",fig.cap="Random intercept by state and region", fig.show='hold', fig.align='center'}
 
 knitr::include_graphics(c("../Presentation/Images/intercept_by_region.png","../Presentation/Images/intercept_by_state.png"))
-``` 
+```
 
-![Predicted Methadone prices per milligram](../Presentation/Images/ppm_source_mgstr.png){width=70%}
+As the final model contains lots of variables it is easier to understand the model with prediction plot which incorporates all the variables except `bulk_purchase` which will only move the graph along the y-axis.
+
+```{r, echo=FALSE,out.width="100%", out.height="20%",fig.cap="Prediction plot", fig.show='hold', fig.align='center'}
+
+knitr::include_graphics("../Presentation/Images/ppm_source_mgstr.png")
+``` 
 
 
 # Conclusion
@@ -176,3 +188,8 @@ knitr::include_graphics(c("../Presentation/Images/intercept_by_region.png","../P
 * Recap results
 * elaborate interpretation
 * limitation and future work
+
+\newpage
+
+# Citations
+1. H.Suratt et al. 2013. Street prices of prescription opioids diverted to the illicit market: data from a national surveillance program. https://doi.org/10.1016/j.jpain.2013.01.455
