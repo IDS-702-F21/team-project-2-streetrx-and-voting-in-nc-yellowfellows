@@ -111,10 +111,10 @@ Random Intercept Hierarchical models AIC
 
 In addition, the Anova F-test has been done and adding second random intercept is significant. Thus, the final model contains `mgstr`, `source`, `bulk_purchase` and two hierarchical variables `state`, `USA_region`.
 
-$$ {\rm ppm}_i = (\beta_{0} + \gamma_{0j} + \psi_{0j}) + \beta_1\cdot{\rm mgstr}_{ij} + \beta_2\cdot{\rm bulk\_purchase}_{ij}+\beta_3\cdot{\rm source}_{ij} + \varepsilon_{ij} \\$$
-$$ \varepsilon_{ij} \sim \mathcal{N}(0, \sigma^2), i=1, ..., n; j=1,...,J $$
-$$ \gamma_{ij} \sim \mathcal{N}(0, \tau_{0}^2), i=1, ..., n; j=1,...,J $$
-$$ \psi_{ij} \sim \mathcal{N}(0, \varsigma_{0}^2), i=1, ..., n; j=1,...,J $$
+$$ {\rm ppm}_i = (\beta_{0} + \gamma_{0j} + \psi_{0k}) + \beta_1\cdot{\rm mgstr}_{ijk} + \beta_2\cdot{\rm bulk\_purchase}_{ijk}+\beta_3\cdot{\rm source}_{ijk} + \varepsilon_{ijk} \\$$
+$$ \varepsilon_{ijk} \sim \mathcal{N}(0, \sigma^2), i=1, ..., n; j=1,...,J $$
+$$ \gamma_{0j} \sim \mathcal{N}(0, \tau_{0}^2), i=1, ..., n; j=1,...,J $$
+$$ \psi_{0k} \sim \mathcal{N}(0, \varsigma_{0}^2), i=1, ..., n; k=1,...,K $$
 
 ```{r echo=FALSE, results='asis'}
 # Preprocessing
