@@ -157,3 +157,44 @@ plt.tight_layout()
 plt.savefig(
     "../Presentation/Images/part2_turnout_predplot_2in1.png", dpi=300, facecolor="white"
 )
+
+
+#%%
+################# Dotplot per County ################
+
+df_dotplot_county = pd.read_parquet(
+    "../Data/part2_dotplot_data_county.parquet"
+).sort_values(by="pointestimate", ascending=True)
+
+
+df_dotplot_county["county_desc"] = df_dotplot_county["county_desc"].astype("category")
+
+fig, ax = plt.subplots(figsize=(8, 10))
+
+sns.pointplot(
+    data=df_dotplot_county,
+    y="county_desc",
+    x="pointestimate",
+    xerr=df_dotplot_county["err"],
+    order=df_dotplot_county["county_desc"],
+    ax=ax,
+    color=DARKBLUE,
+    zorder=10,
+)
+
+ax.errorbar(
+    df_dotplot_county["pointestimate"],
+    df_dotplot_county["county_desc"],
+    xerr=1.96 * df_dotplot_county["err"],
+    zorder=0,
+    color=DARKBLUE,
+)
+
+sns.despine()
+ax.axvline(0, zorder=-1, color="0.6", linestyle="--")
+ax.set_xlabel("(Intercept)")
+ax.set_ylabel("County")
+ax.set_title("Random Intercepts for Counties", weight="bold")
+ax.spines["left"].set_visible(False)
+ax.yaxis.set_tick_params(which="both", length=0)
+plt.savefig("Images/part2_intercept_by_county.png", facecolor="white", dpi=300)
