@@ -169,8 +169,14 @@ ggplot(data=pred_df, aes(x=race_code, y=pred)) + geom_boxplot()
 summary(model4)
 dotplot(ranef(model4))  # consistent with EDA
 
-
-
+######### Export data for plotting #########
+# County-level
+x = ranef(model4, condVar=TRUE)$county_desc
+xdf = data.frame(pointest=ranef(model4, condVar=TRUE)$county_desc, err=as.vector(sqrt(attr(x, "postVar"))))
+xdf$pointestimate = xdf$X.Intercept.
+xdf$county_desc = rownames(xdf)
+xdf$X.Intercept. = NULL
+# write_parquet(xdf, "Data/part2_dotplot_data_county.parquet")
 
 ############# Basic Model Assessment #############
 assess_df = data.frame(preds = fitted(model4), ytrue=df$turnout)
