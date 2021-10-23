@@ -22,7 +22,7 @@ df_pred = pd.read_parquet("../Data/part2_pred_df.parquet")
 
 #%%
 #################### Pred by party age ####################
-fig, ax = plt.subplots(figsize=(8, 5))
+fig, axes = plt.subplots(1, 2, figsize=(16, 5))
 
 party_colors = {
     "CST": "purple",
@@ -40,12 +40,12 @@ sns.pointplot(
     x="age",
     hue="party_cd",
     palette=party_colors,
-    ax=ax,
+    ax=axes[0],
 )
 
 # set alpha
-_ = [c.set_alpha(0.3) for c in ax.collections]
-_ = [l.set_alpha(0.3) for l in ax.lines]
+_ = [c.set_alpha(0.3) for c in axes[0].collections]
+_ = [l.set_alpha(0.3) for l in axes[0].lines]
 
 # DEM & REP
 sns.pointplot(
@@ -54,7 +54,7 @@ sns.pointplot(
     x="age",
     hue="party_cd",
     palette=party_colors,
-    ax=ax,
+    ax=axes[0],
 )
 
 
@@ -75,7 +75,7 @@ def party_positioner(party: str):
 
 
 for party in df_pred["party_cd"].unique():
-    ax.text(
+    axes[0].text(
         x=-0.1,
         y=party_positioner(party),
         s=party,
@@ -87,19 +87,16 @@ for party in df_pred["party_cd"].unique():
     )
 
 sns.despine()
-ax.legend([], frameon=False)
-ax.set_xlabel("Age Group")
-ax.set_ylabel("Turnout Prediction")
-ax.set_title("Predicted Turnout by Age Group", weight="bold")
-plt.savefig(
-    "../Presentation/Images/part2_turnout_by_age.png", dpi=300, facecolor="white"
-)
+axes[0].legend([], frameon=False)
+axes[0].set_xlabel("Age Group")
+axes[0].set_ylabel("Turnout Prediction")
+axes[0].set_title("Predicted Turnout by Age Group", weight="bold")
 
 
-#%%
+
 #################### Pred by party sex ####################
 
-fig, ax = plt.subplots(figsize=(8, 5))
+# fig, axes = plt.subplots(figsize=(8, 5))
 
 party_colors = {
     "CST": "purple",
@@ -117,12 +114,12 @@ sns.pointplot(
     x="sex_code",
     hue="party_cd",
     palette=party_colors,
-    ax=ax,
+    ax=axes[1],
 )
 
 # set alpha
-_ = [c.set_alpha(0.3) for c in ax.collections]
-_ = [l.set_alpha(0.3) for l in ax.lines]
+_ = [c.set_alpha(0.3) for c in axes[1].collections]
+_ = [l.set_alpha(0.3) for l in axes[1].lines]
 
 # DEM & REP
 sns.pointplot(
@@ -131,7 +128,7 @@ sns.pointplot(
     x="sex_code",
     hue="party_cd",
     palette=party_colors,
-    ax=ax,
+    ax=axes[1],
 )
 
 
@@ -139,7 +136,7 @@ label_ys = df_pred.query("sex_code == 'F'").groupby("party_cd")["pred"].mean().t
 
 
 for party in df_pred["party_cd"].unique():
-    ax.text(
+    axes[1].text(
         x=-0.1,
         y=label_ys[party],
         s=party,
@@ -151,11 +148,12 @@ for party in df_pred["party_cd"].unique():
     )
 
 sns.despine()
-ax.legend([], frameon=False)
-ax.set_xlabel("Sex")
-ax.set_ylabel("Turnout Prediction")
-ax.set_title("Predicted Turnout by Sex", weight="bold")
-ax.set_xticklabels(['Female', 'Male', 'Undesignated'])
+axes[1].legend([], frameon=False)
+axes[1].set_xlabel("Sex")
+axes[1].set_ylabel("Turnout Prediction")
+axes[1].set_title("Predicted Turnout by Sex", weight="bold")
+axes[1].set_xticklabels(['Female', 'Male', 'Undesignated'])
+plt.tight_layout()
 plt.savefig(
-    "../Presentation/Images/part2_turnout_by_sex.png", dpi=300, facecolor="white"
+    "../Presentation/Images/part2_turnout_predplot_2in1.png", dpi=300, facecolor="white"
 )
