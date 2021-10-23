@@ -169,7 +169,7 @@ df_dotplot_county = pd.read_parquet(
 
 df_dotplot_county["county_desc"] = df_dotplot_county["county_desc"].astype("category")
 
-fig, ax = plt.subplots(figsize=(8, 10))
+fig, ax = plt.subplots(figsize=(10, 8))
 
 sns.pointplot(
     data=df_dotplot_county,
@@ -197,4 +197,5 @@ ax.set_ylabel("County")
 ax.set_title("Random Intercepts for Counties", weight="bold")
 ax.spines["left"].set_visible(False)
 ax.yaxis.set_tick_params(which="both", length=0)
+ax.set_yticklabels([lab.get_text().title() for lab in ax.get_yticklabels()],)
 plt.savefig("Images/part2_intercept_by_county.png", facecolor="white", dpi=300)
