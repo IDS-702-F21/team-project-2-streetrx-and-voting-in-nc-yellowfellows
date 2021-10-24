@@ -180,10 +180,10 @@ knitr::include_graphics("../Presentation/Images/ppm_source_mgstr.png")
 
 
 # Conclusion
-* Recap focus
-* Recap results
-* elaborate interpretation
-* limitation and future work
+
+In this study, we studied factors associated with the price of methadone in the United States black market. We used a multi-level hierarchical model with random intercepts to analyze how product and geographical data could affect the price per milligram of methadone. The model used both `USA_regions` and `state` as hierarchical variables, and 'mgstr', 'source', and 'bulk_purchase' as fixed effects. Geographically, as the model suggests, methadone is the most expensive in the southern regions of the United States. Similar to this finding, the other hierarchical variable states confirmed this trend because the southern state Tennessee has the significantly most expensive methadone compared to the other states. On the other hand, California and Arizona have the least costly methadone nationwide.
+
+TBD (I'm so tired I need to sleep, see ya tmr)
 
 \newpage
 
