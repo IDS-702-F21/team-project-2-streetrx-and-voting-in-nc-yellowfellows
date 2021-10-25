@@ -122,7 +122,12 @@ The coefficients for the party and age groups interaction have more variability.
 
 # Conclusion
 
-* Recap focus
-* Recap results
-* Elaborate on interpretation
-* limitation and future work
+This model first provided insights into how different demographic groups voted in the 2020 general election. According to the model, ethnic groups and race groups have significantly different turnout rates. Black tends to decrease in 17% turnout rates in comparison to Asians. Non-Hispanic turnout rates also tend to increase by 42% in comparison to Hispanic voters. On the other hand, the model suggested no significant difference in how votes differ by gender (male, female, and undesignated) unless it is combined with party affiliation. For example, a male of the Green party or an undesignated gender of the Libertarian Party both tends to have higher turnout rates than a female of the Constitutional party. [TODO: age by itself, and maybe move gender:party to the paragraph below]
+
+If the overall chance of voting in 2020 varies by county? What was the difference in turnout rates between men and women for each party affiliation? [TODO: answer this question in the model section as well]
+
+Finally, the model showed the difference in turnout rate by age group for different party affiliations. So, regardless of the party, the age group "26-40" is associated with lower turnout rates than the age group "18-25" affiliated with the Constitutional party category. In contrast, the age group "Over 66" was associated with increasing turnout rates regardless of party affiliation. There also seems to be an insignificant pattern in which the age group of "41-65" has a lower turnout rate when affiliated with the green party. 
+
+There are multiple limitations of the dataset and the analysis. The hierarchical model could encounter convergence issues when there are too many parameters in the model. Because there are too many counties in North Carolina, it will be impossible to model, visualize, and interpret if we include all the counties. We randomly selected only 25 counties from North Carolina. And, as a result, our model might not be insightful towards to voting pattern of the entire North Carolina state. Another limitation of the model is that we have to manually modify the voter registration and voter turnout dataset because people voted differently from their party affiliation. This would result in more people voting for a party than the people registered; we cannot use this data directly.
+
+In the future, we would like to revisit this dataset to analyze counties excluded from this analysis. And, we are also interested in analyzing voting patterns for the past presidential election years and examining how different demographic groups react to the presidential candidates. 
