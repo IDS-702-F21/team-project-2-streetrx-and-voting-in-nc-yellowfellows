@@ -1,12 +1,12 @@
 ---
-title: \vspace{-1.5cm} **IDS702 Team Yellow Project II**
+title: \vspace{-1.75cm} **IDS702 Team Yellow Project II**
 author:
   - Anna Dai (Presenter)
   - Athena Liu (Checker)
   - Dauren Bizhanov (Writer)
   - Himangshu Raj Bhantana (Coordinator)
   - Moritz Wilksch (Programmer)
-date: October 24, 2021
+date: October 25, 2021
 output: pdf_document
 ---
 
@@ -177,7 +177,7 @@ knitr::include_graphics("../Presentation/Images/ppm_source_mgstr.png")
 ``` 
 
 
-Looking at the summary table below, the random effects' standard deviation for `state` variable is 0.057 and `USA_regions` is 0.0456 which are 10.6% and 8.5% of the whole variance, respectively. This indicates while these variables do explain some variance, they leave a lot of unexplained variance.
+As for the random effects, looking at the summary table below, the standard deviation for `state` variable is 0.057 and `USA_regions` is 0.0456 which are 10.6% and 8.5% of the whole variance, respectively. This indicates while these variables do explain some variance, they leave a lot of unexplained variance.
 
 ```{r, echo=FALSE, fig.show='hold'}
 ranefprint = data.frame(summary_final$varcor)
