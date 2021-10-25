@@ -125,6 +125,7 @@ The coefficients for the party and age groups interaction have more variability.
 
 
 # Conclusion
+In this study, we investigated how different groups in North Carolina voted in the 2020 elections. We used hierarchical logistic regression to model how groups cast their votes in the election. Our final model contains `party_cd`, `race_code`, `ethnic_code`, `sex_code`, `age` variables and `sex_code` and `party_cd` interaction, `age` and `party_cd` interaction as fixed effects, and `county_desc` as the hierarchical variable with random intercepts. 
 
 This model first provided insights into how different demographic groups voted in the 2020 general election. According to the model, ethnic groups and race groups have significantly different turnout rates. Black tends to decrease in 17% turnout rates in comparison to Asians. Non-Hispanic turnout rates also tend to increase by 42% in comparison to Hispanic voters. On the other hand, the model suggested no significant difference in how votes differ by gender (male, female, and undesignated) unless it is combined with party affiliation. For example, a male of the Green party or an undesignated gender of the Libertarian Party both tends to have higher turnout rates than a female of the Constitutional party. [TODO: age by itself, and maybe move gender:party to the paragraph below]
 
