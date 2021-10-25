@@ -17,13 +17,6 @@ LIGHTBLUE = "#03529B"
 MIDDLE = "#053186"
 DARKBLUE = "#061953"
 
-#%%
-df_pred = pd.read_parquet("../Data/part2_pred_df.parquet")
-
-#%%
-#################### Pred by party age ####################
-fig, axes = plt.subplots(1, 2, figsize=(16, 5))
-
 party_colors = {
     "CST": "purple",
     "DEM": "#0015BC",
@@ -32,6 +25,15 @@ party_colors = {
     "REP": "#E21D26",
     "UNA": "0.5",
 }
+
+
+
+#%%
+df_pred = pd.read_parquet("../Data/part2_pred_df.parquet")
+
+#%%
+#################### Pred by party age ####################
+fig, axes = plt.subplots(1, 2, figsize=(16, 5))
 
 # Faded other parties
 sns.pointplot(
@@ -59,12 +61,7 @@ sns.pointplot(
 
 
 def party_positioner(party: str):
-    label_ys = (
-        df_pred.query("age == 'Age 18 - 25'")
-        .groupby("party_cd")["pred"]
-        .mean()
-        .to_dict()
-    )
+    label_ys = df_pred.query("age == 'Age 18 - 25'").groupby("party_cd")["pred"].mean().to_dict()
 
     if party == "REP":
         return label_ys[party] - 0.0125
@@ -91,7 +88,6 @@ axes[0].legend([], frameon=False)
 axes[0].set_xlabel("Age Group")
 axes[0].set_ylabel("Turnout Prediction")
 axes[0].set_title("Predicted Turnout by Age Group", weight="bold")
-
 
 
 #################### Pred by party sex ####################
@@ -152,19 +148,17 @@ axes[1].legend([], frameon=False)
 axes[1].set_xlabel("Sex")
 axes[1].set_ylabel("Turnout Prediction")
 axes[1].set_title("Predicted Turnout by Sex", weight="bold")
-axes[1].set_xticklabels(['Female', 'Male', 'Undesignated'])
+axes[1].set_xticklabels(["Female", "Male", "Undesignated"])
 plt.tight_layout()
-plt.savefig(
-    "../Presentation/Images/part2_turnout_predplot_2in1.png", dpi=300, facecolor="white"
-)
+plt.savefig("../Presentation/Images/part2_turnout_predplot_2in1.png", dpi=300, facecolor="white")
 
 
 #%%
 ################# Dotplot per County ################
 
-df_dotplot_county = pd.read_parquet(
-    "../Data/part2_dotplot_data_county.parquet"
-).sort_values(by="pointestimate", ascending=True)
+df_dotplot_county = pd.read_parquet("../Data/part2_dotplot_data_county.parquet").sort_values(
+    by="pointestimate", ascending=True
+)
 
 
 df_dotplot_county["county_desc"] = df_dotplot_county["county_desc"].astype("category")
