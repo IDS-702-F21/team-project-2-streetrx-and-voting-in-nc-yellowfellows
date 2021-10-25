@@ -1,7 +1,12 @@
 ---
 title: \vspace{-1.5cm} **IDS702 Team Yellow Project II**
-author: Anna Dai(Presenter), Athena Liu (Checker), Dauren Bizhanov (Writer), Himangshu Raj Bhantana (Coordinator), Moritz Wilksch (Programmer)
-date: October 16, 2021
+author:
+  - Anna Dai (Presenter)
+  - Athena Liu (Checker)
+  - Dauren Bizhanov (Writer)
+  - Himangshu Raj Bhantana (Coordinator)
+  - Moritz Wilksch (Programmer)
+date: October 24, 2021
 output: pdf_document
 ---
 
@@ -26,13 +31,13 @@ library(stargazer)
 
 
 # Summary
-This study explores factors associated with the prices of methadone in the black market with a multi-level linear regression model. The response variable in our study is the price per milligram (ppm) variable.  In combination, the linear regression models with the stepwise regression process suggested that 'mgstr', 'source', and 'bulk_purchase' as predictor variables. `USA_regions` and `State` are suitable as hierarchical predictor variables. Our final model contains 'mgstr', 'source', and 'bulk_purchase' as fixed effects, and  `USA_regions` and `State` as random intercept variables. The fixed effects suggested that there is a tendency for lower prices with higher dosage strength. And, there is a tendency for lower prices with higher dosage strength. The hierarchical variables suggested that methadone prices could vary by region within the United States. For example, the price per milligram (ppm) in the South tends to be higher than in other regions. There are three significant states: California, Arizona, and Tennessee, in which California and Arizona seem to have the cheapest methadone, while Tennessee is paying significantly more compared to all the other states. 
+This study explores factors associated with the prices of methadone on the black market with a multilevel linear regression model. The response variable in our study is the price per milligram (`ppm`) variable.  In combination, the linear regression models and the stepwise regression process suggested that `mgstr`, `source`, and `bulk_purchase` as predictor variables. `USA_regions` and `state` are suitable as hierarchical predictor variables. Our final model contains `mgstr`, `source`, and `bulk_purchase` as fixed effects, and  `USA_regions` and `state` as random intercept variables. The fixed effects suggested that there is a tendency for lower prices with higher dosage strength as well as with bulk purchase. The hierarchical variables suggested that methadone prices could vary by region within the United States. For example, the price per milligram (`ppm`) in the South tends to be higher than in other regions. There are three significant states: California, Arizona, and Tennessee, in which California and Arizona seem to have the cheapest methadone prices, while Tennessee is paying significantly more compared to all the other states. 
 
 # Introduction
-Prescription opioid diversion and misuse are major public health issues, and street pricing reflects medication availability, demand, and potential abuse. However, such information can be challenging to obtain, and in an age of Internet-based social networks, crowdsourcing seems to be an effective solution. Nevertheless, for our study, we use data provided by StreetRx. StreetRx is a web-based citizen reporting tool that collects real-time street price data on diverted pharmaceutical medicines. Based on crowdsourcing ideas for public health surveillance, users can anonymously report drug prices they paid or heard were paid for diverted prescription drugs on the website. This study utilizes the product- and geographically-specific data on the drug Methadone from StreetRx. Methadone is an opioid class medication that helps to reduce drug withdrawal symptoms for other narcotic drugs. Unfortunately, methadone itself is also addictive. Knowing the price of methadone on the street would be crucial to preventing drug abuse, misuse, and the diversion of prescription drugs; thus, this study focuses on exploring factors that influence the price of methadone per milligram. We aim to analyze a multi-level model to study characteristics associated with the price per mg of methadone, allowing for potential clustering by area and examining variability in pricing by region. 
+Prescription opioid diversion and misuse are major public health issues. Street pricing reflects medication availability, demand, and potential abuse. However, such information can be challenging to obtain, and in an age of Internet-based social networks, crowdsourcing seems to be an effective solution. Nevertheless, for our study, we use data provided by StreetRx. StreetRx is a web-based citizen reporting tool that collects real-time street price data on diverted pharmaceutical medicines. Based on crowdsourcing ideas for public health surveillance, users can anonymously report drug prices they paid or heard were paid for diverted prescription drugs on the website. This study utilizes the product- and geographically-specific data on the drug Methadone from StreetRx. Methadone is an opioid class medication that helps to reduce drug withdrawal symptoms for other narcotic drugs. Unfortunately, methadone itself is also addictive. Knowing the price of methadone on the street would be crucial to preventing drug abuse, misuse, and the diversion of prescription drugs. Thus, this study focuses on exploring factors that influence the price of methadone per milligram. We aim to utilize a multilevel model to study characteristics associated with the price per mg of methadone, allowing for potential clustering by area and examining variability in pricing by region. 
 
 # Data
-The data set used for the analysis is the subset with methadone as an active ingredient. It contains six variables: `ppm` as the response variable, and `state`, `USA_region`, `source`, `mgstr`, and `bulk_purchase` as the predictor variables. In addition, the data set contains missing values in two variables of interest,`mgstr` and `ppm`, in which include the outcome variable. Therefore, the exploratory data analysis begins with data cleaning in eliminating missing data values from the dataset.
+The data set used for the analysis is the subset with methadone as an active ingredient. It contains 13 variables, out of which we are interested in six. Price per milligram (`ppm`) is our response variable, `source`, `mgstr`, `bulk_purchase` are our predictor variables, and `state` and `USA_region` are candidates for hierarchical levels. We removed the variable `form_temp` because Methadone is only available in pill form in the data set. In addition, the data set contains missing values in two variables of interest,`mgstr` and `ppm`, which is outcome variable. Therefore, the exploratory data analysis begins with data cleaning in eliminating missing data values from the data set.
 
 ```{r echo=FALSE}
 load("../Data/streetrx.RData")
@@ -50,11 +55,14 @@ colnames(na_count_t) <- rownames(na_count)
 rownames(na_count_t) <- colnames(na_count)
 na_count_t$fac_mgstr <- NULL
 
+```
+
+``` {r eval = FALSE}
 knitr::kable(na_count_t, format="latex", booktabs=TRUE,
              caption='Missing values percentage', row.names = FALSE) %>% 
   kable_styling(latex_options=c("hold_position"))
 ```
-The factor variable `source` has high cardinality with few cases in certain factor levels. Therefore, we decided to group some levels to have a clearer picture in the exploratory data analysis. All internet-based sources are grouped into a single-level named "Internet," and values such as "None" and "N/A" are grouped into the "No Input" category. Moreover, all entries with missing `ppm` are removed, which also eliminated rows with missing `mgstr` values. The variable `mgstr` has six unique values and numeric data types. After an initial inspection,  `mgstr` variable is transformed to a factor variable, and 1mg, 2.5mg, and 15mg cases are filtered as they have only one or two entries per value.
+The original factor variable `source` has high cardinality with few cases in certain factor levels. Therefore, we decided to group some levels to have a clearer picture in the exploratory data analysis. All internet-based sources, such as the different URLs, "Internet Pharmacy", and "Google" are grouped into a single level named "Internet", and values such as "None" and "N/A" are grouped into the "No Input" category. Moreover, all entries with missing `ppm` are removed, which also eliminated rows with missing `mgstr` values. The variable `mgstr` has six unique values and numeric data types. After an initial inspection, the `mgstr` variable is transformed to a factor variable, and 1mg, 2.5mg, and 15mg cases are filtered as they have only one or two entries per value, leaving only 5mg, 10mg, and 40mg. Usually Methadone pills come in 5mg or 10mg doses, while the 40mg pills are not FDA-approved and thus only appear on the black market.
 
 ```{r echo=FALSE}
 df$source = as.character(df$source)
@@ -77,27 +85,32 @@ knitr::kable(mgstrcount, format="latex", booktabs=TRUE, caption='mgstr frequency
   kable_styling(latex_options=c("hold_position"))
 ```
 
-The distribution of the response variable `ppm` is highly right-skewed and contains a few outliers. The log transformation of `ppm` helps to reduce the skewness in the distribution. Thus, we would like to examine further the performance of transformed `ppm` in the modeling phase. Another potential factor that could influence the final model is the outliers within`ppm`. According to the research article by H.Surat, the median price for methadone is $1.00; our dataset contains several outliers that are 40 times greater than the median, which is concerning (H.Suratt et al. 2013). By referencing the outliers removal method presented in the article combined with our research on the usual costs of methadone, we use the percentile method for outliers removal with a 95 percentile level as a cutoff. Overall, 181 data points were removed from the dataset.
+The distribution of the response variable `ppm` is highly right-skewed and contains quite a few outliers. The log transformation of `ppm` helps to reduce the skewness in the distribution. Thus, we would like to examine further the performance of log-transformed `ppm` in the modeling phase. Another potential factor that could influence the final model is the outliers within`ppm`. According to a research article by Surratt et al. (2013), the median price for methadone on the black market is \$1.00 in 2013. Therefore, it is concerning that our data set contains several outliers that are up to 40 times greater than the median street price. Based on this data, we use the percentile method for outliers removal with a 95 percentile level (which works out to a \$2 `ppm`) as a cutoff. Overall, 181 data points were removed from the data set, which corresponds to around 4% of the total data.
 
 ```{r, echo=FALSE,out.width="70%", out.height="35%",fig.cap="ppm and ppm by state distributions",fig.show='hold',fig.align='center'}
 
 knitr::include_graphics(c("../Presentation/Images/part1_univariate_ppm.png","../Presentation/Images/part1_ppm_per_state.png"))
 ``` 
 
-During EDA it has been found out using box plots that price per milligram distributions are about the same for different source levels. But, there is a tendency for lower prices with higher dosage strength. Interestingly, different regions have different median prices per methadone milligram. The same situation holds across the states which can be seen in the plot above which shows only a subset of states. Therefore, these variables may be potential candidates for a hierarchical model and as different states contain different amount of observations a hierarchical model may be better choice than multivariate linear regression with `state` and `USA_regions` as categorical variables.
-Surprisingly, there is no much price difference by `bulk_purchase` variable. As for the interaction observed between dosage strength and state, except for Texas and Delaware, the trend of `ppm` by dosage strength remains consistent across states. Therefore, for modeling, we decide to explore varying intercepts as opposed to random slopes.
+During EDA, we found out (using box plots) that the price per milligram distributions are about the same for different source levels. But, there is a tendency for lower prices with higher dosage strength. Interestingly, different regions have different median prices per methadone milligram. The same situation holds across the states which can be seen in the plot above which shows a subset of all states. Therefore, these variables may be potential candidates for a hierarchical level and as different states contain different number of observations, a hierarchical model may be better choice than multivariate linear regression with `state` and `USA_regions` as categorical variables. Surprisingly, there is not much price difference in `ppm` by `bulk_purchase` variable.  
+
+As for the interaction observed between dosage strength and state, except for Texas and Delaware, the trend of `ppm` by dosage strength remains consistent across states. Similarly, the trend of `ppm` by `source` and `bulk_purchase` also do not appear to vary across states or regions. Therefore, for modeling, we decide to explore varying intercepts as opposed to random slopes.
 
 # Model
-To fit the hierarchical linear regression model, we start modeling using a regular linear regression by defining a null model and full model to use in a stepwise regression process in order to build a parsimonious model. The null model contains only an intercept, whereas the full model contains all relevant variables from the data set without interactions as predictor variables. We use the AIC rather than BIC because the latter is too stringent and removes most variables from the model, which makes it hard to answer our inferential questions. The resulting model violated normality assumption. To fix that we tried to log transform `ppm` variable. Unfortunately, this does not help to meet normality assumption and makes residuals even less normal than before the transformation. Afterwards, we have taken original `ppm` variable and removed outliers using 95 percentile and that helps mitigate severe violation of the normality assumption. 
-Our stepwise model equals full model and contains factorized `mgstr`, `source` and `bulk_purchase` as variables. All levels of `mgstr` are significant compared to baseline - "5 mg" as well as bulk purchase significantly differs from not bulk. Only "No Input" source is not significant compared to baseline "Heard it". Having done with our foundational model we have checked potential interactions including: `source`:`fac_mgstr`, `source`:`bulk`, `fac_mgstr`:`bulk`. In order to do that we employ the ANOVA F-test to test our original stepwise model against the stepwise model plus interactions separately and find that none of them are significant.
-Given that the data set contains two potentially hierachical variables `USA_region`, `state` and both of them are promising according to our EDA, we have fit three random intercept hierarchical linear regression models using all the variables from the step model including `USA_region` and `state` separately and finally, combine both grouping variables together. The model with two random intercepts has the lowest AIC score of 4756.9 (differs from values shown in table below due to ML/REML refitting). 
+To fit the hierarchical linear regression model, we start modeling using a regular linear regression by defining a null model and full model to use in a stepwise regression process in order to build a parsimonious model. The null model contains only an intercept, whereas the full model contains all relevant  non-location variables from the data set without interactions as predictor variables. For the stepwise process, we use the AIC as a decision criterion although using the BIC instead yields similar results. 
+
+Based on the original data (containing all outliers), the resulting model violated the normality assumption. To fix that we tried to log transform the `ppm` variable. Unfortunately, this does not help to meet normality assumption and makes residuals even less normal than before the transformation. Afterwards, we took the original `ppm` variable and removed outliers past the 95th percentile, which helps mitigate severe violation of the normality assumption.  
+
+Our stepwise model turn out to be the full model containing factorized `mgstr`, `source` and `bulk_purchase` as variables. All levels of `mgstr` are significant compared to their respective baselines: "5 mg" as well as "Bulk Purchase" significantly differs from "Not Bulk". Only the "No Input" source level is not significant compared to its baseline, "Heard it". Using this foundational model, we checked potential interactions including: `source`:`fac_mgstr`, `source`:`bulk`, and `fac_mgstr`:`bulk`. In order to do this, we employ the ANOVA F-test to test our original stepwise model against the stepwise model plus interactions separately and find that none of them significantly improve the model performance.  
+
+Given that the data set contains two naturally hierarchical variables `USA_region` and `state` and both of them are promising according to our EDA, we fit three random intercept hierarchical linear regression models including all the variables from the step model. We have the choice of using either `USA_region`, `state`, or both as hierarchical levels. The model using only `USA_region` has a noticeably higher AIC score, whereas `state`-only and the `state` + `USA_region` models have similar AIC scores (the model with both levels having the lowest AIC of 4756.9).
 
 \begin{center}\begin{tabular}{lrrr}
 \toprule
 & AIC \\
 \midrule
-state     &   4760.2  \\
 region &  4783.7  \\
+state     &   4760.2  \\
 state and region & 4756.9 \\
 \bottomrule
 \end{tabular}
@@ -105,12 +118,8 @@ state and region & 4756.9 \\
 Random Intercept Hierarchical models AIC
 \end{center}
 
-In addition, the Anova F-test has been done and adding second random intercept is significant. Thus, the final model contains `mgstr`, `source`, `bulk_purchase` and two hierarchical variables `state`, `USA_region`.
+To choose between these two, we use an ANOVA test. Its result suggests that the model using both `state` and `USA_region` is significantly better than the model that only models random intercepts by `state`. Note that the absolute AIC values between tables differ slightly due to ML/REML refitting. 
 
-$$ {\rm ppm}_i = (\beta_{0} + \gamma_{0j} + \psi_{0k}) + \beta_1\cdot{\rm mgstr}_{ijk} + \beta_2\cdot{\rm bulk\_purchase}_{ijk}+\beta_3\cdot{\rm source}_{ijk} + \varepsilon_{ijk} \\$$
-$$ \varepsilon_{ijk} \sim \mathcal{N}(0, \sigma^2), i=1, ..., n; j=1,...,J $$
-$$ \gamma_{0j} \sim \mathcal{N}(0, \tau_{0}^2), i=1, ..., n; j=1,...,J $$
-$$ \psi_{0k} \sim \mathcal{N}(0, \varsigma_{0}^2), i=1, ..., n; k=1,...,K $$
 
 ```{r echo=FALSE, results='asis'}
 # Preprocessing
@@ -130,9 +139,18 @@ cat("\nF-Test for one random intercept vs two random intercepts models\n")
 cat("\\end{center}")
 ```
 
-As mentioned before, our final model satisfies all linear regression assumptions. However, fitter versus residuals plot has weird artifacts due to the fact that the data set contains only categorical variables.
+Following the results of the ANOVA test, our final model contains `mgstr`, `source`, `bulk_purchase` and two hierarchical variables `state`, `USA_region`.
 
-```{r, echo=FALSE,out.width="33%", out.height="30%",fig.cap="Model assessment plots",fig.show='hold'}
+$$ {\rm ppm}_i = (\beta_{0} + \gamma_{0j} + \psi_{0k}) +\sum_{m=2}^3 \beta_{1m}\cdot \mathbb{I}[{\rm mgstr}_{ijk} = m] + \beta_2\cdot{\rm bulk\_purchase}_{ijk}+ \sum_{m=2}^4 \beta_{3m}\cdot \mathbb{I}[{\rm source}_{ijk} = m] + \varepsilon_{ijk} \\$$
+$$ \varepsilon_{ijk} \sim \mathcal{N}(0, \sigma^2), i=1, ..., n; j=1,...,J;k=1,...,K $$
+$$ \gamma_{0j} \sim \mathcal{N}(0, \tau_{0}^2), i=1, ..., n; j=1,...,J $$
+$$ \psi_{0k} \sim \mathcal{N}(0, \varsigma_{0}^2), i=1, ..., n; k=1,...,K $$
+
+
+
+As mentioned before, our final model satisfies all linear regression assumptions. However, we acknowledge the fitted versus residuals plot has weird artifacts. This is most likely due to the fact that the data set contains only categorical variables.
+
+```{r, eval=FALSE, echo=FALSE,out.width="33%", out.height="30%",fig.cap="Model assessment plots",fig.show='hold'}
 
 knitr::include_graphics(c("../Presentation/Images/lm_qqplot_residuals.png","../Presentation/Images/lm_resid_fitted.png", "../Presentation/Images/lm_cooks(in r).png"))
 ``` 
@@ -150,45 +168,43 @@ knitr::kable(summarydf, format="latex", booktabs=TRUE, caption="Fixed effects of
   kable_styling(latex_options=c("hold_position"))
 ```
 
-All the fixed effects in the final model are significant except the "No Input" category of `source` variable in comparison to the baseline "Heard of". As all fixed effects coefficients are negative, we can conclude that the highest price is predicted when all fixed effects are at the baseline levels.
-Random effects standard deviation for `state` variable is 0.057 and `USA_regions` is 0.0456 which are 10.6% and 8.5% accordingly of the whole variance which means that there is a lot of variation unexplained by these variables. 
+All the fixed effects in the final model are significant. The only exception is the "No Input" category of the `source` variable in comparison to its baseline "Heard it". As all fixed effects coefficients are negative, we can conclude that the highest price is predicted when all fixed effects are at their respective baseline levels, which represents a 5mg dose not purchased in bulk and the source of which has been reported as "Heard It".
 
-```{r echo=FALSE}
+As the final model contains many variables, it is easier to understand the model with a prediction plot which incorporates all the variables except `bulk_purchase` which will only move the graph along the y-axis. It is evident that `ppm` is lower for higher dosages as well as Internet-based sources.
+```{r, echo=FALSE, out.width="100%", out.height="20%",fig.cap="Prediction plot", fig.align='center', fig.show='hold',}
+
+knitr::include_graphics("../Presentation/Images/ppm_source_mgstr.png")
+``` 
+
+
+Looking at the summary table below, the random effects' standard deviation for `state` variable is 0.057 and `USA_regions` is 0.0456 which are 10.6% and 8.5% of the whole variance, respectively. This indicates while these variables do explain some variance, they leave a lot of unexplained variance.
+
+```{r, echo=FALSE, fig.show='hold'}
 ranefprint = data.frame(summary_final$varcor)
 ranefprint = ranefprint[,-3]
 ranefprint[is.na(ranefprint)] = ""
 ranefprint[,3:4] = round(ranefprint[,3:4],4)
 colnames(ranefprint) = c("Groups","Name","Variance","Std.Dev.")
 
-knitr::kable(ranefprint, format="latex", booktabs=TRUE, caption="Varience of the random effects") %>% 
+knitr::kable(ranefprint, format="latex", booktabs=TRUE, caption="Variance of the random effects") %>% 
   kable_styling(latex_options=c("hold_position"))
 ```
 
-Moreover, we have only one significant region which accounted for `USA_regions` variable. Price per milligram in the South tends to be higher than in different regions. There are three significant states: California, Arizona and Tennesse. 
+
+Examining the plot of random intercepts by region, we have only one region with a random intercept that is significantly different from the grand mean. The price per milligram in the South tends to be higher than in other regions. Similarly, there are three states with significantly different random intercepts: California, Arizona and Tennessee. Specifically, `ppm` in California and Arizona tend to be lower than average, while prices in Tennessee are higher than average.
 
 ```{r, echo=FALSE,out.width="70%", out.height="30%",fig.cap="Random intercept by state and region", fig.show='hold', fig.align='center'}
 
 knitr::include_graphics(c("../Presentation/Images/intercept_by_region.png","../Presentation/Images/intercept_by_state.png"))
 ```
 
-As the final model contains lots of variables it is easier to understand the model with prediction plot which incorporates all the variables except `bulk_purchase` which will only move the graph along the y-axis.
-
-```{r, echo=FALSE,out.width="100%", out.height="20%",fig.cap="Prediction plot", fig.show='hold', fig.align='center'}
-
-knitr::include_graphics("../Presentation/Images/ppm_source_mgstr.png")
-``` 
-
-
 # Conclusion
-In this study, we studied factors associated with the price of methadone in the United States black market. We used a multi-level hierarchical model with random intercepts to analyze how product and geographical data could affect the price per milligram of methadone. The model used both `USA_regions` and `state` as hierarchical variables, and 'mgstr', 'source', and 'bulk_purchase' as fixed effects. Geographically, as the model suggests, methadone is the most expensive in the southern regions of the United States. Similar to this finding, the other hierarchical variable states confirmed this trend because the southern state Tennessee has the significantly most expensive methadone compared to the other states. On the other hand, California and Arizona have the least costly methadone nationwide. Moreover, we found the price of methadone varies with different dose strength, obtained source, and bulk purchase. The price of methadone tends to be more expensive when dose strength is weak and less expensive when dose strength is strong. Also, methadone tends to be less costly when purchased in bulk. Lastly, online and in-person purchases are associated with cheaper methadone than the prices people heard of and reported. (might need change)
+In this study, we studied factors associated with the price of methadone in the United States black market. We used a multilevel hierarchical model with random intercepts to analyze how product characteristics and geographical data could affect the price per milligram of methadone. The model used both `USA_regions` and `state` as hierarchical levels, and `mgstr`, `source`, and `bulk_purchase` as fixed effects. Geographically, the model suggests that methadone is the most expensive in the southern regions of the United States. Similar to this finding, the other hierarchical variable states confirmed this trend because the southern state Tennessee has the significantly most expensive methadone compared to the other states. On the other hand, California and Arizona have the least costly methadone nationwide. Moreover, we found the price of methadone varies with different dose strength, obtained source, and bulk purchase. The price of methadone tends to be more expensive when dose strength is weak and less expensive when dose strength is strong. Also, methadone tends to be less costly when purchased in bulk. Lastly, Internet and personal purchases are associated with cheaper methadone than the prices people heard of and reported.
 
-
-There are multiple limitations of our analysis. First, StreetRx collected the dataset through crowdsourcing, where users can enter methadone prices and related data. Thus, users could make mistakes while entering the values. For example, one of the entries for methadone prices is 40 times higher than the median price of methadone. Another limitation of the dataset is the imbalanced distribution of cases between the categories. For example, some categories in sources and states contain only one or two data points. Thus we need to remove these points manually. 
-
-We would like to examine the geographic correlation between methadone prices and other opioid drugs in the future. While methadone is an opioid class drug used to relieve drug withdrawal symptoms, it is also addictive. Therefore, it will be crucial to understand if using other types of opioids influences the abuse and misuse of methadone. This could help to prevent abuse and misuse of multiple drugs in a region. 
+There are multiple limitations of our analysis. First, StreetRx collected the data set through crowdsourcing, where users can enter methadone prices and related data. Thus, users could make mistakes while entering the values or intentionally misreport prices. For example, several of the entries for methadone prices are 40 times higher than the median price of methadone. We tried to remedy this issue by employing a common outlier removal technique, but have to acknowledge that all reported prices are subject to human mistakes and biases. Another limitation of the data set is the imbalanced distribution of cases between the categories. For example, some categories in sources and states contain only one or two data points. Future research could aim to collect a more comprehensive data set with a sufficient number of samples for all subgroups. Moreover, in the future, the relationship between methadone prices and other opioid drug prices could be studied. While methadone is an opioid used to relieve drug withdrawal symptoms, it is also addictive. Therefore, it will be crucial to understand if using other types of opioids influences the pricing and, therefore, the abuse and misuse of methadone. This could help to prevent abuse and misuse of multiple drugs in a region. 
 
 
 \newpage
 
 # Citations
-1. H.Suratt et al. 2013. Street prices of prescription opioids diverted to the illicit market: data from a national surveillance program. https://doi.org/10.1016/j.jpain.2013.01.455
+1. H.Surratt et al. 2013. Street prices of prescription opioids diverted to the illicit market: data from a national surveillance program. https://doi.org/10.1016/j.jpain.2013.01.455
