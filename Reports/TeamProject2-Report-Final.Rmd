@@ -200,7 +200,7 @@ knitr::kable(ranefprint, format="latex", booktabs=TRUE, caption="Variance of the
 
 Examining the plot of random intercepts by region, we have only one region with a random intercept that is significantly different from the grand mean. The price per milligram in the South tends to be higher than in other regions. Similarly, there are three states with significantly different random intercepts: California, Arizona and Tennessee. Specifically, `ppm` in California and Arizona tend to be lower than average, while prices in Tennessee are higher than average.
 
-```{r, echo=FALSE,out.width="70%", out.height="30%",fig.cap="Random intercept by state and region", fig.show='hold', fig.align='center'}
+```{r, echo=FALSE,out.width="100%", out.height="39%",fig.cap="Random intercept by state and region", fig.show='hold', fig.align='center'}
 
 knitr::include_graphics(c("../Presentation/Images/intercept_by_region.png","../Presentation/Images/intercept_by_state.png"))
 ```
@@ -219,6 +219,9 @@ This study investigates the voting behavior of different demographic groups in t
 
 ## Introduction
 The North Carolina State Board of Elections ("NCSBE") oversees election administration as well as campaign finance disclosure and compliance. They give voter registration and turnout information online, among other things, via the ncsbe.gov website. Using the North Carolina ("NC") voter files for the general elections in November 2020, we attempt to identify/estimate the voting behavior of various demographic groups in the 2020 elections in North Carolina. We also employ a hierarchical model to capture the geographical differences of the voting turnout by county. In this study, we take a sample of 25 NC counties to analyze. In addition, we aim to answer the following questions of interest: what was the difference in turnout rates between men and women for each party affiliation as well as what was the difference in turnout rates between age groups for each party affiliation. 
+
+&nbsp;
+&nbsp;
 
 ## Data
 
@@ -298,25 +301,26 @@ $$\gamma_{0j} \sim \mathcal{N}(0, \sigma_{0}^2), i=1, ..., n; j=1,...,J $$
 
 *Note: in the model equation, $\beta_1$ through $\beta_6$ are parameter vectors. For a categorical variable with $d$ levels, the associated $\beta$ coefficient has $d-1$ components and the variable name represents a $d-1$ dimensional one-hot encoded vector which represents the category (one dimension removed for the baseline).* 
 
-&nbsp;
 
 All categories in `race_code` variable are significant and highly dispersed. Race code "B" (Black) is associated with a decrease in the log odds ratio by 0.1869, which corresponds to a 0.83 ($\exp(-0.1869)$) multiplicative effect or 17% decrease in odds ratio in comparison to base level "A" (Asian). On the other hand, race code "U" (Undesignated) is associated with an increase in the log odds ratio by 0.2467 or by 1.28 ($\exp(0.2467)$) multiplicative effect. The variable `ethnic_code` has all significant categories too. Being Non-Hispanic is associated with increasing log odds by 0.42 (1.52 in odds ratio) in comparison to Hispanic ethnic group and being part of Undesignated ethnic group is associated with increasing log odds ratio by 0.30 (1.35 in odds ratio).
 
-There is no significant difference by `sex_code` variable in comparison with the baseline level without accounting for party affiliations. So, we can not conclude that being male, female or of undesignated gender is associated with higher or lower turnout rates for those affiliated with the baseline Constitutional party and baseline age 18-25. However, females aged 18-25 who are part of the Liberal party are associated with a decrease in log odds ratio by the factor of 0.6728 (0.51 odds ratio) in comparison with the same group affiliated with the Constitutional party. We have two significant levels of party by sex interaction. Being male, aged 18-25, and a member of Green party is associated with an increase in log odds ratio by 0.786 (2.19 odds ratio) in comparison to being a female member of Constitutional party of the same age group, which is our baseline. The second significant level is a Libertarian party member with undesignated sex category. This level is associated with an increase in log odds ratio 0.74 (2.10 odds ratio) in comparison to the same baseline. The trends of these interactions can be better visualized by the prediction plots below (note that the two plots only show trends for two predictors at a time so the plotted predictions are not conditioned on all variables).
+There is no significant difference by `sex_code` variable in comparison with the baseline level without accounting for party affiliations. So, we can not conclude that being male, female or of undesignated gender is associated with higher or lower turnout rates for those affiliated with the baseline Constitutional party and baseline age 18-25. However, females aged 18-25 who are part of the Liberal party are associated with a decrease in log odds ratio by the factor of 0.6728 (0.51 odds ratio) in comparison with the same group affiliated with the Constitutional party. We have two significant levels of party by sex interaction. Being male, aged 18-25, and a member of Green party is associated with an increase in log odds ratio by 0.786 (2.19 odds ratio) in comparison to being a female member of Constitutional party of the same age group, which is our baseline. The second significant level is a Libertarian party member with undesignated sex category. This level is associated with an increase in log odds ratio 0.74 (2.10 odds ratio) in comparison to the same baseline (See Appendix (A) for additional details on the summary statistics of the model's fixed effects). The trends of these interactions can be better visualized by the prediction plots below. 
 
 ```{r, echo=FALSE,out.width="105%", out.height="22%",fig.cap="Turnout prediction plots", fig.align='center', fig.show='hold'}
 
 knitr::include_graphics("../Presentation/Images/part2_turnout_predplot_2in1.png")
 ``` 
 
-\newpage
+*Note: The two prediction plots only show trends for two predictors at a time so the plotted predictions are not conditioned on all variables.*
 
 From the dotplot below, we can conclude that only four counties have non-significant random intercept. Counties such as Carteret and Alexander are associated with an increase in log odds ratios. On the other hand, counties such as Robeson and Cherokee are associated with a decreased log odds ratio. In other words, voters from Carteret county tend to have higher turnout and voters from Robeson have lower turnout. Overall, the model confirmed that the odds of voting indeed differ by county. 
 
-```{r, echo=FALSE, out.width="80%",fig.cap="Dotplot of random intercepts for counties",  fig.align='center', fig.show='hold'}
+```{r, echo=FALSE, out.width="80%", out.height="40%",fig.cap="Dotplot of random intercepts for counties",  fig.align='center', fig.show='hold'}
 
 knitr::include_graphics("../Presentation/Images/part2_intercept_by_county.png")
 ``` 
+
+\newpage
 
 ## Conclusion
 In this study, we investigated how different groups in North Carolina voted in the 2020 general elections for a sample of 25 counties. We used hierarchical logistic regression to model whether different demographic groups cast their votes in the election. Our final model contains `party_cd`, `race_code`, `ethnic_code`, `sex_code`, `age` variables and `sex_code` and `party_cd` interaction, `age` and `party_cd` interaction as fixed effects, and `county_desc` as the hierarchical variable with random intercepts. 
@@ -326,11 +330,78 @@ According to our model, different demographic subgroups, such as ethnic and race
 There are multiple limitations of the data set and the analysis. This study only considered a random sample of 25 counties in North Carolina, thus the conclusions do not necessarily generalize to the entire state.
 Another limitation we have to acknowledge is that we manually modified the voter registration and voter turnout data to account for subgroups where the number of people who voted exceeds the registered number of voters. This methodology could be different had we used data on the entire state of NC. In addition to this, the two data sets on registered and actual voters have been collected from two different sources, so there is no guarantee for identical variable definitions. While modeling, the hierarchical model encountered convergence issues when there were too many parameters in the model. This limited us from fully exploring the space of all possible models, such as a random slope by county model. In the future, this analysis could be repeated for all counties in NC or other states. 
 
-\newpage
-# Appendix
-## (A) Summary Statistics of Fixed Effects
 
 \newpage
 
 # Citations
 1. H.Surratt et al. 2013. Street prices of prescription opioids diverted to the illicit market: data from a national surveillance program. https://doi.org/10.1016/j.jpain.2013.01.455
+
+
+\newpage
+# Appendix
+## (A) Summary Statistics of Fixed Effects
+
+\begin{table}[!h]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+  & Estimate & Std..Error & z.value & Pr...z..\\
+\midrule
+(Intercept) & 0.2333390 & 0.2459718 & 0.9486413 & 0.3428031\\
+party\_cdDEM & -0.1551529 & 0.2421427 & -0.6407500 & 0.5216851\\
+party\_cdGRE & 0.4934399 & 0.3430473 & 1.4384019 & 0.1503201\\
+party\_cdLIB & -0.6728443 & 0.2482555 & -2.7102893 & 0.0067225\\
+party\_cdREP & -0.1321375 & 0.2422160 & -0.5455357 & 0.5853852\\
+party\_cdUNA & -0.6574063 & 0.2420901 & -2.7155441 & 0.0066167\\
+race\_codeB & -0.1869889 & 0.0196181 & -9.5314246 & 0.0000000\\
+race\_codeI & -0.1803265 & 0.0241417 & -7.4694963 & 0.0000000\\
+race\_codeM & -0.1197290 & 0.0297804 & -4.0204012 & 0.0000581\\
+race\_codeO & -0.1768735 & 0.0231188 & -7.6506366 & 0.0000000\\
+race\_codeP & 2.6396699 & 0.5920463 & 4.4585529 & 0.0000083\\
+race\_codeU & 0.2467431 & 0.0215165 & 11.4675995 & 0.0000000\\
+race\_codeW & 0.2303015 & 0.0191721 & 12.0123425 & 0.0000000\\
+ethnic\_codeNL & 0.4195936 & 0.0125215 & 33.5098797 & 0.0000000\\
+ethnic\_codeUN & 0.3013655 & 0.0127654 & 23.6080656 & 0.0000000\\
+sex\_codeM & -0.3463976 & 0.2172495 & -1.5944694 & 0.1108309\\
+sex\_codeU & 0.0018116 & 0.2551792 & 0.0070993 & 0.9943356\\
+ageAge 26 - 40 & 0.6476096 & 0.2225232 & 2.9103006 & 0.0036108\\
+ageAge 41 - 65 & 0.5963095 & 0.2216993 & 2.6897219 & 0.0071512\\
+ageAge Over 66 & 1.0307123 & 0.4231515 & 2.4357999 & 0.0148589\\
+\addlinespace
+party\_cdDEM:sex\_codeM & 0.0775371 & 0.2173483 & 0.3567414 & 0.7212854\\
+party\_cdGRE:sex\_codeM & 0.7864939 & 0.3420804 & 2.2991493 & 0.0214965\\
+party\_cdLIB:sex\_codeM & 0.3530474 & 0.2227519 & 1.5849350 & 0.1129811\\
+party\_cdREP:sex\_codeM & 0.3034631 & 0.2173837 & 1.3959792 & 0.1627208\\
+party\_cdUNA:sex\_codeM & 0.2509803 & 0.2173506 & 1.1547255 & 0.2482029\\
+party\_cdDEM:sex\_codeU & 0.2232300 & 0.2553989 & 0.8740444 & 0.3820941\\
+party\_cdGRE:sex\_codeU & -0.0920022 & 0.3475252 & -0.2647352 & 0.7912134\\
+party\_cdLIB:sex\_codeU & 0.7436895 & 0.2657972 & 2.7979579 & 0.0051427\\
+party\_cdREP:sex\_codeU & 0.4081121 & 0.2554935 & 1.5973486 & 0.1101880\\
+party\_cdUNA:sex\_codeU & 0.1043550 & 0.2551997 & 0.4089153 & 0.6826018\\
+\addlinespace
+party\_cdDEM:ageAge 26 - 40 & -0.5683944 & 0.2227569 & -2.5516355 & 0.0107219\\
+party\_cdGRE:ageAge 26 - 40 & -1.0391905 & 0.3241975 & -3.2054242 & 0.0013486\\
+party\_cdLIB:ageAge 26 - 40 & -0.3807674 & 0.2297952 & -1.6569861 & 0.0975223\\
+party\_cdREP:ageAge 26 - 40 & -0.4339439 & 0.2228543 & -1.9472088 & 0.0515097\\
+party\_cdUNA:ageAge 26 - 40 & -0.3829097 & 0.2226841 & -1.7195198 & 0.0855198\\
+party\_cdDEM:ageAge 41 - 65 & 0.4709798 & 0.2219193 & 2.1223021 & 0.0338124\\
+party\_cdGRE:ageAge 41 - 65 & -0.0911046 & 0.3950709 & -0.2306031 & 0.8176231\\
+party\_cdLIB:ageAge 41 - 65 & 0.1299058 & 0.2310179 & 0.5623193 & 0.5738985\\
+party\_cdREP:ageAge 41 - 65 & 0.4843537 & 0.2219962 & 2.1818106 & 0.0291235\\
+party\_cdUNA:ageAge 41 - 65 & 0.5413922 & 0.2218663 & 2.4401732 & 0.0146802\\
+party\_cdDEM:ageAge Over 66 & 0.0716897 & 0.4232849 & 0.1693651 & 0.8655095\\
+party\_cdGRE:ageAge Over 66 & 0.5192150 & 1.1258482 & 0.4611767 & 0.6446718\\
+party\_cdLIB:ageAge Over 66 & 0.0571453 & 0.4408669 & 0.1296203 & 0.8968669\\
+party\_cdREP:ageAge Over 66 & 0.0802420 & 0.4233344 & 0.1895475 & 0.8496637\\
+party\_cdUNA:ageAge Over 66 & 0.4991688 & 0.4232983 & 1.1792366 & 0.2383040\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+```{r, eval=FALSE, echo=FALSE}
+summarydf= data.frame(coef(summary(model4)))
+
+knitr::kable(summarydf, format="latex", booktabs=TRUE) %>% 
+  kable_styling(latex_options=c("hold_position"))
+
+```

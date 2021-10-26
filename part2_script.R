@@ -171,13 +171,13 @@ dotplot(ranef(model4))  # consistent with EDA
 
 
 
-############ PRETTY TABLE BELOW ############
-summaryprint = summary(model4)
+###################### PRETTY TABLE BELOW ######################
+summarydf= data.frame(coef(summary(model4)))
 
-knitr::kable(summaryprint, format="latex", booktabs=TRUE) %>% 
+knitr::kable(summarydf, format="latex", booktabs=TRUE) %>% 
   kable_styling(latex_options=c("hold_position"))
 
-#############################################
+################################################################
 
 
 
