@@ -193,3 +193,122 @@ ax.spines["left"].set_visible(False)
 ax.yaxis.set_tick_params(which="both", length=0)
 ax.set_yticklabels([lab.get_text().title() for lab in ax.get_yticklabels()],)
 plt.savefig("Images/part2_intercept_by_county.png", facecolor="white", dpi=300)
+
+
+
+
+#%%
+""" #################### Pred by party age ####################
+df_long = pd.read_parquet("../Data/part2_df_long.parquet")
+
+fig, axes = plt.subplots(1, 2, figsize=(16, 5))
+
+
+
+# Faded other parties
+sns.pointplot(
+    data=df_long.query("not party_cd.isin(('DEM', 'REP'))"),
+    y="new_response",
+    x="age",
+    ci=None,
+    hue="party_cd",
+    palette=party_colors,
+    ax=axes[0],
+)
+
+# set alpha
+_ = [c.set_alpha(0.3) for c in axes[0].collections]
+_ = [l.set_alpha(0.3) for l in axes[0].lines]
+
+# DEM & REP
+sns.pointplot(
+    data=df_long.query("party_cd.isin(('DEM', 'REP'))"),
+    y="new_response",
+    x="age",
+    hue="party_cd",
+    ci=None,
+    palette=party_colors,
+    ax=axes[0],
+)
+
+
+def party_positioner(party: str):
+    label_ys = df_long.query("age == 'Age 18 - 25'").groupby("party_cd")["new_response"].mean().to_dict()
+
+    if party == "REP":
+        return label_ys[party] - 0.0125
+    elif party == "CST":
+        return label_ys[party] + 0.0125
+    else:
+        return label_ys[party]
+
+
+for party in df_long["party_cd"].unique():
+    axes[0].text(
+        x=-0.1,
+        y=party_positioner(party),
+        s=party,
+        ha="right",
+        va="center",
+        ci=None,
+        weight="bold",
+        color=party_colors[party],
+        size=14,
+    )
+
+sns.despine()
+axes[0].legend([], frameon=False)
+axes[0].set_xlabel("Age Group")
+axes[0].set_ylabel("Turnout Prediction")
+axes[0].set_title("Predicted Turnout by Age Group", weight="bold")
+
+
+sns.pointplot(
+    data=df_long.query("not party_cd.isin(('DEM', 'REP'))"),
+    y="new_response",
+    x="sex_code",
+    ci=None,
+    hue="party_cd",
+    palette=party_colors,
+    ax=axes[1],
+)
+
+# set alpha
+_ = [c.set_alpha(0.3) for c in axes[1].collections]
+_ = [l.set_alpha(0.3) for l in axes[1].lines]
+
+# DEM & REP
+sns.pointplot(
+    data=df_long.query("party_cd.isin(('DEM', 'REP'))"),
+    y="new_response",
+    x="sex_code",
+    ci=None,
+    hue="party_cd",
+    palette=party_colors,
+    ax=axes[1],
+)
+
+
+label_ys = df_long.query("sex_code == 'F'").groupby("party_cd")["new_response"].mean().to_dict()
+
+
+for party in df_long["party_cd"].unique():
+    axes[1].text(
+        x=-0.1,
+        y=label_ys[party],
+        s=party,
+        ha="right",
+        ci=None,
+        va="center",
+        weight="bold",
+        color=party_colors[party],
+        size=14,
+    )
+
+sns.despine()
+axes[1].legend([], frameon=False)
+axes[1].set_xlabel("Sex")
+axes[1].set_ylabel("Turnout Prediction")
+axes[1].set_title("Predicted Turnout by Sex", weight="bold")
+axes[1].set_xticklabels(["Female", "Male", "Undesignated"])
+plt.tight_layout() """
