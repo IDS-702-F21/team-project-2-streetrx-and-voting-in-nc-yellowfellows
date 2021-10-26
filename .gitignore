@@ -2,6 +2,7 @@
 .Rhistory
 .RData
 .DS_Store
+*.log
 *.key
 Data/voter_stats_20201103.txt
 Data/streetrx.RData
