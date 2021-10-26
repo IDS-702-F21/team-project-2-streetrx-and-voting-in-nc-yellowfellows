@@ -27,9 +27,10 @@ party_colors = {
 }
 
 
-
 #%%
 df_pred = pd.read_parquet("../Data/part2_pred_df.parquet")
+# df_pred = pd.read_parquet("../Data/part2_df_long_pred.parquet")
+# df_pred['pred'] = (df_pred['pred'] > 0.5).astype(int)
 
 #%%
 #################### Pred by party age ####################
@@ -312,3 +313,25 @@ axes[1].set_ylabel("Turnout Prediction")
 axes[1].set_title("Predicted Turnout by Sex", weight="bold")
 axes[1].set_xticklabels(["Female", "Male", "Undesignated"])
 plt.tight_layout() """
+
+
+#%%
+##########################################################
+###################### Only subset #######################
+##########################################################
+#################### Pred by party age ####################
+df_pred = pd.read_parquet("../Data/part2_df_long.parquet")
+
+fig, ax = plt.subplots(figsize=(8, 5))
+
+df_subset = df_pred.query("sex_code == 'F' and age == 'Age 18 - 25'")
+
+
+sns.pointplot(
+    data=df_subset,
+    x="party_cd",
+    y="new_response",
+    ax=ax
+
+)
+
