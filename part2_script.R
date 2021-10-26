@@ -169,6 +169,18 @@ ggplot(data=pred_df, aes(x=race_code, y=pred)) + geom_boxplot()
 summary(model4)
 dotplot(ranef(model4))  # consistent with EDA
 
+
+
+############ PRETTY TABLE BELOW ############
+summaryprint = summary(model4)
+
+knitr::kable(summaryprint, format="latex", booktabs=TRUE) %>% 
+  kable_styling(latex_options=c("hold_position"))
+
+#############################################
+
+
+
 ######### Export data for plotting #########
 # County-level
 x = ranef(model4, condVar=TRUE)$county_desc
